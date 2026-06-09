@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard – LightInMotion</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Reset & Variables */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#0071E3;--purple:#7B61FF;--cyan:#00FFD1;--bg:#050507;
+  --surface:rgba(25,25,28,0.6);--surface-border:rgba(255,255,255,0.08);
+  --text-main:#F5F5F7;--text-muted:#A1A1A6;
+}
+body{background:var(--bg);color:var(--text-main);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:40px 20px;}
+
+h1, h2, h3{font-family:'Outfit',sans-serif;font-weight:600;}
+
+/* Login Screen */
+#login-screen{background:var(--surface);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--surface-border);border-radius:24px;padding:40px;width:100%;max-width:400px;text-align:center;margin:auto;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 20px 40px rgba(0,0,0,0.5);}
+#login-screen h1{margin-bottom:24px;font-size:28px;}
+.input-group{margin-bottom:20px;text-align:left;}
+.input-group label{display:block;font-size:13px;color:var(--text-muted);margin-bottom:8px;font-weight:500;}
+input{width:100%;padding:14px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:#fff;font-family:'Inter',sans-serif;font-size:15px;outline:none;transition:border-color 0.3s;}
+input:focus{border-color:var(--blue);}
+.btn{width:100%;padding:14px;background:#fff;color:#000;border:none;border-radius:12px;font-size:15px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;transition:transform 0.2s;margin-top:10px;}
+.btn:hover{transform:translateY(-2px);}
+
+/* Dashboard */
+#dashboard{display:none;width:100%;max-width:1000px;margin:0 auto;}
+.dash-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px;padding-bottom:20px;border-bottom:1px solid var(--surface-border);}
+.dash-header h1{font-size:32px;}
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;}
+.card{background:var(--surface);backdrop-filter:blur(24px);border:1px solid var(--surface-border);border-radius:24px;padding:32px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);}
+.card h2{margin-bottom:24px;font-size:20px;color:#fff;}
+.card-section{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.05);}
+.card-section:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none;}
+.card-section h3{font-size:16px;margin-bottom:16px;color:var(--blue);}
+.save-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,12,0.9);backdrop-filter:blur(20px);border-top:1px solid var(--surface-border);padding:20px;text-align:center;z-index:100;transform:translateY(100%);transition:transform 0.3s;}
+.save-bar.visible{transform:translateY(0);}
+#msg{margin-top:16px;font-size:14px;color:var(--cyan);display:none;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <h1>Admin Access</h1>
+  <div class="input-group">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Enter password" onkeypress="if(event.key==='Enter') login()">
+  </div>
+  <button class="btn" onclick="login()">Login</button>
+  <div id="login-err" style="color:#ff4444;margin-top:16px;font-size:14px;display:none;">Incorrect password</div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="dash-header">
+    <h1>Dashboard</h1>
+    <button class="btn" style="width:auto;padding:10px 24px;" onclick="location.reload()">Logout</button>
+  </div>
+  
+  <div class="dash-grid">
+    <!-- Pricing -->
+    <div class="card">
+      <h2>App Pricing (₹)</h2>
+      <div class="input-group" style="margin-bottom:0;">
+        <label>Universal App Price</label>
+        <input type="number" id="p-app" oninput="showSaveBar()">
+      </div>
+    </div>
+
+    <!-- Downloads -->
+    <div class="card">
+      <h2>Download Links</h2>
+      
+      <div class="card-section">
+        <h3>📱 Android App</h3>
+        <div class="input-group">
+          <label>Version (e.g., v2.5.0)</label>
+          <input type="text" id="v-android" oninput="showSaveBar()">
+        </div>
+        <div class="input-group" style="margin-bottom:0;">
+          <label>Download URL</label>
+          <input type="text" id="u-android" oninput="showSaveBar()">
+        </div>
+      </div>
+      
+      <div class="card-section">
+        <h3>📺 Android TV</h3>
+        <div class="input-group">
+          <label>Version</label>
+          <input type="text" id="v-tv" oninput="showSaveBar()">
+        </div>
+        <div class="input-group" style="margin-bottom:0;">
+          <label>Download URL</label>
+          <input type="text" id="u-tv" oninput="showSaveBar()">
+        </div>
+      </div>
+      
+      <div class="card-section">
+        <h3>💻 Windows Client</h3>
+        <div class="input-group">
+          <label>Version</label>
+          <input type="text" id="v-windows" oninput="showSaveBar()">
+        </div>
+        <div class="input-group" style="margin-bottom:0;">
+          <label>Download URL</label>
+          <input type="text" id="u-windows" oninput="showSaveBar()">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE BAR -->
+<div class="save-bar" id="save-bar">
+  <div style="max-width:1000px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;">
+    <span style="color:var(--text-muted);font-size:14px;">Unsaved changes</span>
+    <div style="display:flex;gap:16px;align-items:center;">
+      <span id="msg">Saved successfully!</span>
+      <button class="btn" style="width:auto;padding:12px 32px;margin:0;" onclick="saveData()">Publish Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentData = {};
+let sessionPass = '';
+
+function login() {
+  const pass = document.getElementById('password').value;
+  if(!pass) return;
+  
+  // Test password by trying to fetch data and posting it? No, we can just save the password and test on first save.
+  // Actually, to make it secure we should test it now. But we don't have an auth endpoint. 
+  // Let's just fetch data, transition to dashboard, and store pass. If they save with wrong pass, it errors.
+  
+  fetch('/api/data')
+    .then(res => res.json())
+    .then(data => {
+      currentData = data;
+      sessionPass = pass;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      populateForms(data);
+    });
+}
+
+function populateForms(data) {
+  if(data.pricing) {
+    if(document.getElementById('p-app')) document.getElementById('p-app').value = data.pricing.app || '';
+  }
+  if(data.downloads) {
+    document.getElementById('v-android').value = data.downloads.android.version || '';
+    document.getElementById('u-android').value = data.downloads.android.url || '';
+    
+    document.getElementById('v-tv').value = data.downloads.tv.version || '';
+    document.getElementById('u-tv').value = data.downloads.tv.url || '';
+    
+    document.getElementById('v-windows').value = data.downloads.windows.version || '';
+    document.getElementById('u-windows').value = data.downloads.windows.url || '';
+  }
+}
+
+function showSaveBar() {
+  document.getElementById('save-bar').classList.add('visible');
+  document.getElementById('msg').style.display = 'none';
+}
+
+function saveData() {
+  const newData = {
+    pricing: {
+      app: document.getElementById('p-app').value
+    },
+    downloads: {
+      android: {
+        version: document.getElementById('v-android').value,
+        url: document.getElementById('u-android').value
+      },
+      tv: {
+        version: document.getElementById('v-tv').value,
+        url: document.getElementById('u-tv').value
+      },
+      windows: {
+        version: document.getElementById('v-windows').value,
+        url: document.getElementById('u-windows').value
+      }
+    }
+  };
+
+  fetch('/api/data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: sessionPass, data: newData })
+  })
+  .then(res => {
+    if(!res.ok) {
+      if(res.status === 401) {
+        alert("Incorrect password. Please reload and log in again.");
+      } else {
+        alert("Error saving data.");
+      }
+      throw new Error("HTTP error " + res.status);
+    }
+    return res.json();
+  })
+  .then(resData => {
+    document.getElementById('save-bar').classList.remove('visible');
+    const msg = document.getElementById('msg');
+    msg.style.display = 'inline-block';
+    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+  })
+  .catch(err => console.error(err));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "pricing": {
+    "app": "999"
+  },
+  "downloads": {
+    "android": {
+      "version": "v1.1.4",
+      "url": "/download/LightinMotion-v1.1.4.apk"
+    },
+    "tv": {
+      "version": "v1.1.4",
+      "url": "/download/LightinMotion-v1.1.4.apk"
+    },
+    "windows": {
+      "version": "v1.0.3",
+      "url": "/download/LightinMotion-Setup.exe"
+    }
+  }
+}

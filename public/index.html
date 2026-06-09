@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LightInMotion – Transform Every Screen</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Reset & Root Variables */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#0071E3;--purple:#7B61FF;--cyan:#00FFD1;--bg:#000000;
+  --surface:rgba(255,255,255,0.02);--surface-border:rgba(255,255,255,0.08);
+  --text-main:#F5F5F7;--text-muted:#A1A1A6;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text-main);font-family:'Inter',sans-serif;overflow-x:hidden;line-height:1.6}
+
+/* Canvas Background */
+canvas#bg{position:fixed;top:0;left:0;z-index:0;pointer-events:none}
+section{position:relative;z-index:1}
+
+/* Navigation */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:16px 60px;display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.6);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--surface-border)}
+.logo{font-family:'Outfit',sans-serif;font-weight:700;font-size:24px;background:linear-gradient(90deg,#fff,var(--text-muted));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
+.nav-links{display:flex;gap:36px;list-style:none;align-items:center}
+.nav-links a{color:var(--text-muted);text-decoration:none;font-size:14px;font-weight:500;transition:color 0.2s}
+.nav-links a:hover{color:#fff}
+.nav-cta{background:#fff;border:none;color:#000;padding:10px 24px;border-radius:50px;font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 14px rgba(255,255,255,0.1)}
+.nav-cta:hover{transform:scale(1.04);background:#fff;box-shadow:0 6px 20px rgba(255,255,255,0.2)}
+.menu-btn{display:none;background:none;border:none;color:#fff;font-size:24px;cursor:pointer}
+.mobile-only{display:none}
+
+/* Hero Section */
+#hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:140px 40px 60px}
+.hero-inner{max-width:1000px}
+.hero-tag{display:inline-block;background:rgba(255,255,255,0.05);border:1px solid var(--surface-border);border-radius:50px;padding:8px 20px;font-size:12px;font-weight:600;letter-spacing:0.1em;color:#fff;margin-bottom:32px;backdrop-filter:blur(10px)}
+h1{font-family:'Outfit',sans-serif;font-size:clamp(48px,8vw,96px);font-weight:700;line-height:1.05;margin-bottom:24px;letter-spacing:-1px;background:linear-gradient(180deg,#fff 30%,rgba(255,255,255,0.6));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:clamp(18px,2vw,22px);color:var(--text-muted);max-width:650px;margin:0 auto 48px;line-height:1.6;font-weight:400}
+.btn-group{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.btn-primary{background:#fff;border:none;color:#000;padding:16px 40px;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.3s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(255,255,255,0.2)}
+.btn-ghost{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:16px 40px;border-radius:50px;font-size:16px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;backdrop-filter:blur(10px);transition:all 0.3s}
+.btn-ghost:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2)}
+
+/* TV Mockup */
+.tv-container{margin:80px auto 0;max-width:800px;position:relative}
+.tv-frame{background:linear-gradient(145deg,#151518,#0a0a0c);border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:12px;box-shadow:inset 0 1px 1px rgba(255,255,255,0.2), 0 40px 100px rgba(0,0,0,0.8), 0 0 80px rgba(0,113,227,0.2);position:relative;overflow:visible}
+.tv-screen{background:#000;border-radius:12px;aspect-ratio:16/9;overflow:hidden;position:relative}
+.screen-content{width:100%;height:100%;background:linear-gradient(135deg,#0d0221,#1a0533,#0d1b2a);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.screen-glow{position:absolute;inset:0;animation:screenPulse 3s ease-in-out infinite alternate}
+@keyframes screenPulse{
+  0%{background:radial-gradient(ellipse at 30% 50%,rgba(0,113,227,0.3),transparent 60%),radial-gradient(ellipse at 70% 30%,rgba(123,97,255,0.3),transparent 50%)}
+  100%{background:radial-gradient(ellipse at 50% 60%,rgba(123,97,255,0.35),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(0,255,209,0.2),transparent 50%)}
+}
+.led-top{position:absolute;top:-6px;left:5%;right:5%;height:4px;border-radius:2px;animation:ledTop 3s ease-in-out infinite alternate;filter:blur(2px)}
+.led-bottom{position:absolute;bottom:-6px;left:5%;right:5%;height:4px;border-radius:2px;animation:ledBottom 3s ease-in-out infinite alternate;filter:blur(2px)}
+.led-left{position:absolute;left:-6px;top:5%;bottom:5%;width:4px;border-radius:2px;animation:ledSide 3s ease-in-out infinite alternate;filter:blur(2px)}
+.led-right{position:absolute;right:-6px;top:5%;bottom:5%;width:4px;border-radius:2px;animation:ledSide 3s 1.5s ease-in-out infinite alternate;filter:blur(2px)}
+@keyframes ledTop{0%{background:linear-gradient(90deg,var(--blue),var(--purple),var(--cyan));box-shadow:0 -10px 30px var(--blue)}100%{background:linear-gradient(90deg,var(--purple),var(--cyan),var(--blue));box-shadow:0 -10px 30px var(--purple)}}
+@keyframes ledBottom{0%{background:linear-gradient(90deg,var(--cyan),var(--blue),var(--purple));box-shadow:0 10px 30px var(--cyan)}100%{background:linear-gradient(90deg,var(--blue),var(--purple),var(--cyan));box-shadow:0 10px 30px var(--blue)}}
+@keyframes ledSide{0%{background:linear-gradient(180deg,var(--blue),var(--purple));box-shadow:-10px 0 30px var(--blue)}100%{background:linear-gradient(180deg,var(--purple),var(--cyan));box-shadow:-10px 0 30px var(--purple)}}
+.tv-stand{width:120px;height:24px;background:linear-gradient(180deg,#151518,#050507);margin:0 auto;border-radius:0 0 12px 12px;position:relative}
+.tv-base{width:220px;height:6px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);margin:0 auto;border-radius:3px}
+.floor-glow{width:400px;height:20px;background:radial-gradient(ellipse,rgba(0,113,227,0.15),transparent 70%);margin:0 auto;filter:blur(15px)}
+
+/* Generic Section Styles */
+.section-tag{font-size:13px;font-weight:600;letter-spacing:0.1em;color:var(--text-muted);text-transform:uppercase;margin-bottom:16px;display:block}
+.section-title{font-family:'Outfit',sans-serif;font-size:clamp(36px,5vw,56px);font-weight:700;margin-bottom:60px;letter-spacing:-1px}
+.section-title span{background:linear-gradient(90deg,var(--blue),#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+/* Features */
+#features{padding:120px 60px;max-width:1400px;margin:0 auto}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+.feature-card{background:rgba(20,20,22,0.6);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--surface-border);border-radius:24px;padding:40px;transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1);position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 10px 30px rgba(0,0,0,0.3)}
+.feature-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at top right, rgba(255,255,255,0.05), transparent 60%);opacity:0;transition:opacity 0.4s}
+.feature-card:hover{transform:translateY(-8px);border-color:rgba(255,255,255,0.2);box-shadow:inset 0 1px 0 rgba(255,255,255,0.1), 0 20px 40px rgba(0,0,0,0.4)}
+.feature-card:hover::before{opacity:1}
+.feature-icon{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:24px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05)}
+.feature-card h3{font-family:'Outfit',sans-serif;font-size:20px;font-weight:600;margin-bottom:12px;color:#fff}
+.feature-card p{color:var(--text-muted);font-size:15px;line-height:1.7}
+
+/* Showcase */
+#showcase{padding:120px 60px;text-align:center}
+.showcase-inner{max-width:1100px;margin:0 auto}
+.showcase-3d{background:rgba(20,20,22,0.4);backdrop-filter:blur(24px);border:1px solid var(--surface-border);border-radius:32px;padding:80px 40px;margin-top:60px;position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05)}
+.showcase-scene{position:relative;height:450px;display:flex;align-items:center;justify-content:center}
+.showcase-tv{position:relative;width:540px;max-width:90%}
+.showcase-screen{background:linear-gradient(135deg,#0d0221,#1a0533);border-radius:12px;aspect-ratio:16/9;overflow:hidden;border:1px solid rgba(255,255,255,0.1);position:relative;box-shadow:0 20px 50px rgba(0,0,0,0.8)}
+.showcase-led-top{position:absolute;top:-12px;left:3%;right:3%;height:8px;border-radius:4px;animation:showcaseLed 2s ease-in-out infinite alternate;box-shadow:0 -12px 40px var(--blue);filter:blur(4px)}
+.showcase-led-bottom{position:absolute;bottom:-12px;left:3%;right:3%;height:8px;border-radius:4px;animation:showcaseLed 2s 0.5s ease-in-out infinite alternate;box-shadow:0 12px 40px var(--purple);filter:blur(4px)}
+.showcase-led-left{position:absolute;left:-12px;top:3%;bottom:3%;width:8px;border-radius:4px;animation:showcaseLed 2s 1s ease-in-out infinite alternate;box-shadow:-12px 0 40px var(--cyan);filter:blur(4px)}
+.showcase-led-right{position:absolute;right:-12px;top:3%;bottom:3%;width:8px;border-radius:4px;animation:showcaseLed 2s 1.5s ease-in-out infinite alternate;box-shadow:12px 0 40px var(--blue);filter:blur(4px)}
+@keyframes showcaseLed{
+  0%{background:linear-gradient(90deg,var(--blue),var(--cyan))}
+  50%{background:linear-gradient(90deg,var(--purple),var(--blue))}
+  100%{background:linear-gradient(90deg,var(--cyan),var(--purple))}
+}
+.room-glow{position:absolute;inset:-40px;background:radial-gradient(ellipse at center,rgba(0,113,227,0.08) 0%,rgba(123,97,255,0.04) 40%,transparent 70%);animation:roomGlow 3s ease-in-out infinite alternate;border-radius:32px;pointer-events:none}
+@keyframes roomGlow{0%{opacity:0.6}100%{opacity:1;background:radial-gradient(ellipse at center,rgba(0,255,209,0.08) 0%,rgba(0,113,227,0.05) 40%,transparent 70%)}}
+.mode-btn{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:12px 28px;border-radius:50px;cursor:pointer;font-family:'Inter',sans-serif;font-size:14px;font-weight:500;transition:all 0.3s;backdrop-filter:blur(10px)}
+.mode-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);transform:translateY(-2px)}
+
+/* How It Works */
+#howitworks{padding:120px 60px;max-width:1100px;margin:0 auto;text-align:center}
+.steps{display:flex;gap:24px;margin-top:80px;position:relative;flex-wrap:wrap;justify-content:center}
+.step{flex:1;min-width:280px;padding:32px;text-align:center;position:relative;z-index:1;background:rgba(20,20,22,0.4);border:1px solid var(--surface-border);border-radius:24px;backdrop-filter:blur(20px)}
+.step-num{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-family:'Outfit',sans-serif;font-size:24px;font-weight:700;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,0.1)}
+.step h3{font-family:'Outfit',sans-serif;font-size:20px;font-weight:600;margin-bottom:12px}
+.step p{color:var(--text-muted);font-size:15px;line-height:1.7}
+
+/* Pricing */
+#pricing{padding:120px 60px;text-align:center}
+.pricing-grid{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-top:60px;max-width:1100px;margin-left:auto;margin-right:auto}
+.price-card{background:rgba(20,20,22,0.6);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--surface-border);border-radius:32px;padding:48px 40px;flex:1;min-width:300px;max-width:340px;position:relative;transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 20px 40px rgba(0,0,0,0.3);text-align:left}
+.price-card.featured{border-color:rgba(255,255,255,0.2);background:rgba(30,30,35,0.8);transform:scale(1.05);box-shadow:inset 0 1px 0 rgba(255,255,255,0.2), 0 30px 60px rgba(0,0,0,0.5)}
+.price-card.featured::before{content:'MOST POPULAR';position:absolute;top:0;left:0;right:0;background:#fff;color:#000;font-size:11px;letter-spacing:0.15em;padding:8px;text-align:center;font-weight:700;font-family:'Inter',sans-serif}
+.price-card:hover{transform:translateY(-8px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.1), 0 30px 60px rgba(0,0,0,0.5)}
+.price-card.featured:hover{transform:scale(1.05) translateY(-8px);}
+.price-name{font-family:'Outfit',sans-serif;font-size:24px;font-weight:600;margin-bottom:8px;color:#fff}
+.price-devices{font-size:14px;color:var(--text-muted);margin-bottom:32px;font-weight:500}
+.price-amount{font-family:'Outfit',sans-serif;font-size:56px;font-weight:700;line-height:1;margin-bottom:8px;color:#fff;letter-spacing:-2px}
+.price-period{font-size:14px;color:var(--text-muted);margin-bottom:40px}
+.price-features{list-style:none;margin-bottom:40px}
+.price-features li{padding:12px 0;font-size:15px;color:var(--text-main);display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.price-features li::before{content:'✓';color:var(--blue);font-weight:700;font-size:14px;background:rgba(0,113,227,0.1);width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.btn-price{width:100%;padding:16px;border-radius:50px;border:none;font-family:'Inter',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.3s;text-align:center}
+.btn-price-fill{background:#fff;color:#000}
+.btn-price-fill:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(255,255,255,0.2)}
+.btn-price-outline{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff}
+.btn-price-outline:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2)}
+
+/* Downloads */
+#downloads{padding:120px 60px;text-align:center;max-width:1200px;margin:0 auto}
+.downloads-notice{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:50px;padding:12px 32px;margin-bottom:60px;display:inline-block;font-size:14px;color:var(--text-muted);backdrop-filter:blur(10px)}
+.downloads-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:32px}
+.download-card{background:rgba(20,20,22,0.6);backdrop-filter:blur(24px);border:1px solid var(--surface-border);border-radius:32px;padding:48px 40px;text-align:center;transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1);box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 20px 40px rgba(0,0,0,0.3)}
+.download-card:hover{transform:translateY(-8px);border-color:rgba(255,255,255,0.2);box-shadow:inset 0 1px 0 rgba(255,255,255,0.1), 0 30px 60px rgba(0,0,0,0.4)}
+.dl-platform{font-size:48px;margin-bottom:24px;color:#fff}
+.dl-name{font-family:'Outfit',sans-serif;font-size:24px;font-weight:600;margin-bottom:12px;color:#fff}
+.dl-meta{display:flex;gap:12px;margin-bottom:32px;justify-content:center}
+.dl-meta span{font-size:13px;color:var(--text-muted);background:rgba(255,255,255,0.05);padding:6px 14px;border-radius:50px}
+.download-card p{font-size:15px;color:var(--text-muted);margin-bottom:32px;line-height:1.6}
+.dl-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;background:#fff;border:none;color:#000;padding:14px 32px;border-radius:50px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.3s;width:100%}
+.dl-btn:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(255,255,255,0.2)}
+
+/* Testimonials */
+#testimonials{padding:120px 60px;text-align:center}
+.testimonials-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:32px;max-width:1200px;margin:60px auto 0}
+.testi-card{background:rgba(20,20,22,0.4);backdrop-filter:blur(24px);border:1px solid var(--surface-border);border-radius:24px;padding:40px;text-align:left;transition:transform 0.4s;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05)}
+.testi-card:hover{transform:translateY(-6px)}
+.testi-stars{color:#fff;font-size:16px;margin-bottom:20px;letter-spacing:2px}
+.testi-text{font-size:16px;color:var(--text-main);line-height:1.7;margin-bottom:32px}
+.testi-author{display:flex;align-items:center;gap:16px}
+.testi-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:16px;background:rgba(255,255,255,0.1);color:#fff}
+.testi-name{font-weight:600;font-size:16px;color:#fff}
+.testi-role{font-size:14px;color:var(--text-muted)}
+
+/* FAQ */
+#faq{padding:120px 60px;max-width:800px;margin:0 auto}
+.faq-list{margin-top:60px}
+.faq-item{border-bottom:1px solid rgba(255,255,255,0.1);padding:32px 0;cursor:pointer}
+.faq-q{font-family:'Outfit',sans-serif;font-size:20px;font-weight:500;display:flex;justify-content:space-between;align-items:center;gap:16px;transition:color 0.2s;color:#fff}
+.faq-item:hover .faq-q{color:var(--text-muted)}
+.faq-a{font-size:16px;color:var(--text-muted);line-height:1.7;max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding-top 0.4s;padding-top:0}
+.faq-item.open .faq-a{max-height:300px;padding-top:20px}
+.faq-icon{font-size:24px;color:#fff;transition:transform 0.4s;font-weight:300}
+.faq-item.open .faq-icon{transform:rotate(45deg)}
+
+/* Contact */
+#contact{padding:120px 60px;text-align:center;max-width:1000px;margin:0 auto}
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:24px;margin-top:60px}
+.contact-card{background:rgba(20,20,22,0.4);backdrop-filter:blur(24px);border:1px solid var(--surface-border);border-radius:24px;padding:40px 24px;transition:all 0.3s;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05)}
+.contact-card:hover{transform:translateY(-6px);border-color:rgba(255,255,255,0.2)}
+.contact-icon{font-size:32px;margin-bottom:16px;color:#fff}
+.contact-card h4{font-family:'Outfit',sans-serif;font-size:18px;font-weight:600;margin-bottom:8px;color:#fff}
+.contact-card p{font-size:15px;color:var(--text-muted)}
+
+/* Footer */
+footer{background:#000;border-top:1px solid rgba(255,255,255,0.1);padding:80px 60px;text-align:center;position:relative;z-index:1}
+.footer-logo{font-family:'Outfit',sans-serif;font-size:28px;font-weight:700;color:#fff;margin-bottom:20px;letter-spacing:-0.5px}
+.footer-links{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+.footer-links a{color:var(--text-muted);text-decoration:none;font-size:14px;transition:color 0.2s}
+.footer-links a:hover{color:#fff}
+.footer-copy{font-size:14px;color:rgba(255,255,255,0.3)}
+
+/* Animations */
+.fade-in{opacity:0;transform:translateY(40px) scale(0.98);transition:opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)}
+.fade-in.visible{opacity:1;transform:translateY(0) scale(1)}
+.glow-orb{position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0}
+.hero-orb1{width:700px;height:700px;background:radial-gradient(circle,rgba(0,113,227,0.1),transparent);top:-200px;left:-200px}
+.hero-orb2{width:600px;height:600px;background:radial-gradient(circle,rgba(123,97,255,0.08),transparent);bottom:-100px;right:-100px}
+
+/* Responsive */
+@media(max-width:900px){
+  .price-card.featured{transform:none;}
+  .price-card.featured:hover{transform:translateY(-8px);}
+}
+@media(max-width:768px){
+  nav{padding:16px 24px}
+  .menu-btn{display:block;}
+  .mobile-only{display:block;}
+  .nav-links{position:absolute;top:100%;left:0;right:0;background:rgba(5,5,7,0.98);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--surface-border);flex-direction:column;padding:24px;gap:24px;text-align:center;clip-path:polygon(0 0, 100% 0, 100% 0, 0 0);transition:clip-path 0.4s ease}
+  .nav-links.active{clip-path:polygon(0 0, 100% 0, 100% 100%, 0 100%)}
+  .nav-links .nav-cta{display:none} /* hide original if duplicated */
+  h1{font-size:clamp(40px,10vw,48px)}
+  #features,#showcase,#howitworks,#pricing,#downloads,#testimonials,#faq,#contact{padding:80px 24px}
+  footer{padding:60px 24px}
+  .showcase-tv{width:100%}
+  .pricing-grid, .downloads-grid, .features-grid, .testimonials-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<nav>
+  <div class="logo">LightInMotion</div>
+  <button class="menu-btn" onclick="document.querySelector('.nav-links').classList.toggle('active')">☰</button>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#showcase">Showcase</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#downloads">Downloads</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li class="mobile-only"><button class="btn-primary" style="width:100%;padding:10px;font-size:14px" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">Buy Now</button></li>
+  </ul>
+  <button class="nav-cta" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">Buy Now →</button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="glow-orb hero-orb1"></div>
+  <div class="glow-orb hero-orb2"></div>
+  <div class="hero-inner fade-in">
+    <div class="hero-tag">Real-Time LED Synchronization</div>
+    <h1>Transform Every Screen Into An Immersive Experience</h1>
+    <p class="hero-sub">Pro-grade real-time TV, Gaming, Movie and Music synchronization for smart LED setups. Zero latency, infinite possibilities.</p>
+    <div class="btn-group">
+      <button class="btn-primary" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})" id="hero-btn-price">Get Started – ₹499</button>
+      <button class="btn-ghost">Watch Demo</button>
+    </div>
+    <div class="tv-container fade-in">
+      <div class="tv-frame">
+        <div class="led-top"></div>
+        <div class="led-bottom"></div>
+        <div class="led-left"></div>
+        <div class="led-right"></div>
+        <div class="tv-screen">
+          <div class="screen-content">
+            <div class="screen-glow"></div>
+            <canvas id="screenCanvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="tv-stand"></div>
+      <div class="tv-base"></div>
+      <div class="floor-glow"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <span class="section-tag">Features</span>
+  <h2 class="section-title">Everything you <span>need.</span></h2>
+  <div class="features-grid">
+    <div class="feature-card fade-in" style="transition-delay:0s">
+      <div class="feature-icon">📺</div>
+      <h3>Real-Time Sync</h3>
+      <p>Captures screen colors at up to 60fps and syncs LEDs in milliseconds for a seamless immersive experience.</p>
+    </div>
+    <div class="feature-card fade-in" style="transition-delay:0.1s">
+      <div class="feature-icon">📡</div>
+      <h3>Android TV Support</h3>
+      <p>Full Android TV app for sideload or install. Works natively with any Android TV running Android 8.0+.</p>
+    </div>
+    <div class="feature-card fade-in" style="transition-delay:0.2s">
+      <div class="feature-icon">🖥️</div>
+      <h3>Windows Desktop</h3>
+      <p>Native Windows 10/11 EXE installer. Sync your PC gaming and movie setup effortlessly in seconds.</p>
+    </div>
+    <div class="feature-card fade-in" style="transition-delay:0.3s">
+      <div class="feature-icon">⚡</div>
+      <h3>Zero Latency</h3>
+      <p>Under 16ms latency using optimized algorithms — your LEDs react faster than your eye can process.</p>
+    </div>
+    <div class="feature-card fade-in" style="transition-delay:0s">
+      <div class="feature-icon">🎨</div>
+      <h3>Custom Effects</h3>
+      <p>Create your own scenes, sophisticated color palettes, and dynamic effects with the visual studio.</p>
+    </div>
+    <div class="feature-card fade-in" style="transition-delay:0.1s">
+      <div class="feature-icon">🎵</div>
+      <h3>Music Reactive</h3>
+      <p>Advanced BPM detection and frequency analysis drives your LEDs to the precise beat of any audio.</p>
+    </div>
+    <div class="feature-card fade-in" style="transition-delay:0.2s">
+      <div class="feature-icon">🔌</div>
+      <h3>Plug & Play</h3>
+      <p>Connect, install, and glow in under 5 minutes. No complex soldering, no hardware degree required.</p>
+    </div>
+    <div class="feature-card fade-in" style="transition-delay:0.3s">
+      <div class="feature-icon">🔐</div>
+      <h3>Secure Access</h3>
+      <p>License-based activation system with a unified device management dashboard and instant delivery.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SHOWCASE -->
+<section id="showcase">
+  <div class="showcase-inner">
+    <span class="section-tag">Interactive Preview</span>
+    <h2 class="section-title">See it in <span>action.</span></h2>
+    <p style="color:var(--text-muted);font-size:18px;max-width:600px;margin:0 auto">Watch your space transform with real-time ambient lighting that mirrors every single frame of your content.</p>
+    <div class="showcase-3d fade-in">
+      <div class="room-glow" id="roomGlow"></div>
+      <div class="showcase-scene">
+        <div class="showcase-tv">
+          <div class="showcase-led-top" id="sl-top"></div>
+          <div class="showcase-led-bottom" id="sl-bot"></div>
+          <div class="showcase-led-left" id="sl-left"></div>
+          <div class="showcase-led-right" id="sl-right"></div>
+          <div class="showcase-screen">
+            <canvas id="showcaseCanvas" style="width:100%;height:100%;display:block"></canvas>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:40px;display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+        <button onclick="setMode('movie')" class="mode-btn">🎬 Cinema Sync</button>
+        <button onclick="setMode('game')" class="mode-btn">🎮 Gaming Mode</button>
+        <button onclick="setMode('music')" class="mode-btn">🎵 Audio Beat</button>
+        <button onclick="setMode('ambient')" class="mode-btn">🌅 Warm Ambient</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="howitworks">
+  <span class="section-tag">Workflow</span>
+  <h2 class="section-title">Up and running in <span>minutes.</span></h2>
+  <div class="steps">
+    <div class="step fade-in">
+      <div class="step-num">1</div>
+      <h3>Get License</h3>
+      <p>Select your tier and complete secure checkout. Your license key arrives instantly.</p>
+    </div>
+    <div class="step fade-in" style="transition-delay:0.1s">
+      <div class="step-num">2</div>
+      <h3>Download App</h3>
+      <p>Install our premium app for Android, TV, or Windows. Zero configuration required.</p>
+    </div>
+    <div class="step fade-in" style="transition-delay:0.2s">
+      <div class="step-num">3</div>
+      <h3>Experience</h3>
+      <p>Plug in your smart LED strip, activate your key, and immerse yourself.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <span class="section-tag">Pricing</span>
+  <h2 class="section-title" style="text-align:center">Choose your <span>plan.</span></h2>
+  <div class="pricing-grid" style="grid-template-columns: 1fr; max-width: 500px;">
+    <div class="price-card featured fade-in" style="transform:none; margin: 0 auto; width: 100%;">
+      <div class="price-name" style="margin-top:16px">Universal License</div>
+      <div class="price-devices">Access for all your devices</div>
+      <div class="price-amount" id="price-app">₹499</div>
+      <div class="price-period">One-time fixed price for all Apps (APK & EXE)</div>
+      <ul class="price-features">
+        <li>Includes Android, Android TV, and Windows PC</li>
+        <li>Unlimited Devices</li>
+        <li>Real-Time Screen Sync & Custom Effects</li>
+        <li>Music Reactive Mode</li>
+        <li>Priority 24/7 Support & Lifetime Updates</li>
+      </ul>
+      <p style="font-size: 14px; color: var(--cyan); margin-bottom: 24px; text-align: center; font-weight: 600;">✨ Existing LIGHTINMOTION customers get free access!</p>
+      <button class="btn-price btn-price-fill">Buy Now</button>
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOADS -->
+<section id="downloads">
+  <span class="section-tag">Downloads</span>
+  <h2 class="section-title" style="text-align:center">Get the <span>apps.</span></h2>
+  <div class="downloads-notice">Requires a valid license key to activate software after installation.</div>
+  <div class="downloads-grid fade-in">
+    <div class="download-card">
+      <div class="dl-platform">📱</div>
+      <div class="dl-name">Mobile Companion</div>
+      <div class="dl-meta"><span id="ver-android">v2.5.0</span><span>18.2 MB</span><span>Android 8.0+</span></div>
+      <p>The ultimate companion app. Control your LEDs, create scenes, and manage sync settings straight from your phone.</p>
+      <a href="#" class="dl-btn" id="btn-android" style="text-decoration:none" download>Download APK</a>
+    </div>
+    <div class="download-card">
+      <div class="dl-platform">📺</div>
+      <div class="dl-name">TV Engine</div>
+      <div class="dl-meta"><span id="ver-tv">v2.5.0</span><span>24.7 MB</span><span>Android TV 9+</span></div>
+      <p>The core sync engine. Runs silently on your TV, capturing screen content and driving the LED algorithms in real-time.</p>
+      <a href="#" class="dl-btn" id="btn-tv" style="text-decoration:none" download>Download APK</a>
+    </div>
+    <div class="download-card">
+      <div class="dl-platform">💻</div>
+      <div class="dl-name">Desktop Client</div>
+      <div class="dl-meta"><span id="ver-windows">v2.5.0</span><span>42.8 MB</span><span>Win 10/11</span></div>
+      <p>Full desktop synchronization. Auto-detects your controller and begins hyper-fast sync immediately on launch.</p>
+      <a href="#" class="dl-btn" id="btn-windows" style="text-decoration:none" download>Download EXE</a>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <span class="section-tag">Reviews</span>
+  <h2 class="section-title" style="text-align:center">Loved by <span>creators.</span></h2>
+  <div class="testimonials-grid">
+    <div class="testi-card fade-in">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">"The latency is simply nonexistent. I've used premium smart lighting products before, and this absolutely blows them out of the water at a fraction of the cost."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">AR</div>
+        <div><div class="testi-name">Arjun R.</div><div class="testi-role">PC Gamer</div></div>
+      </div>
+    </div>
+    <div class="testi-card fade-in" style="transition-delay:0.1s">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">"Set it up in under 10 minutes flat. My home cinema has been completely transformed. The music mode during parties is breathtaking."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">PS</div>
+        <div><div class="testi-name">Priya S.</div><div class="testi-role">Home Theatre Enthusiast</div></div>
+      </div>
+    </div>
+    <div class="testi-card fade-in" style="transition-delay:0.2s">
+      <div class="testi-stars">★★★★★</div>
+      <p class="testi-text">"Running seamlessly on my Mi TV. The support team responded to my query in under 2 hours. This product deserves nothing less than 10 stars."</p>
+      <div class="testi-author">
+        <div class="testi-avatar">RK</div>
+        <div><div class="testi-name">Rahul K.</div><div class="testi-role">Tech Reviewer</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <span class="section-tag">FAQ</span>
+  <h2 class="section-title">Common <span>questions.</span></h2>
+  <div class="faq-list">
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Which TVs are supported? <span class="faq-icon">+</span></div>
+      <div class="faq-a">Any Android TV running Android 8.0 or later. This includes popular brands like Mi, Sony Bravia (Android TV), TCL, OnePlus TV, and more. Fire TV and Tizen are not currently supported natively.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">How do I install the app on my TV? <span class="faq-icon">+</span></div>
+      <div class="faq-a">Enable "Install from unknown sources" in your TV settings, then sideload via a USB drive, or use apps like Downloader to install directly from our secure URL. A comprehensive video guide is included.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">What is your refund policy? <span class="faq-icon">+</span></div>
+      <div class="faq-a">We offer a 7-day no-questions-asked refund guarantee. If the software doesn't work perfectly on your setup and our support team can't resolve it, you receive a full refund instantly.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">How does the activation process work? <span class="faq-icon">+</span></div>
+      <div class="faq-a">Following your purchase, you'll receive a unique license key via email. Open the app, select "Activate", paste your key, and you're good to go. Internet is only required for the initial activation step.</div>
+    </div>
+    <div class="faq-item" onclick="toggleFaq(this)">
+      <div class="faq-q">Which LED controllers are compatible? <span class="faq-icon">+</span></div>
+      <div class="faq-a">We support WLED (via WiFi/USB), Govee (via local API), and any ESP8266/ESP32-based custom controller. A detailed wiring guide and WLED firmware flash instructions are included in the welcome package.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <span class="section-tag">Contact</span>
+  <h2 class="section-title" style="text-align:center">We're here to <span>help.</span></h2>
+  <div class="contact-grid fade-in">
+    <div class="contact-card"><div class="contact-icon">📧</div><h4>Email Support</h4><p>support@lightinmotion.app</p></div>
+    <div class="contact-card"><div class="contact-icon">💬</div><h4>Discord</h4><p>discord.gg/lightinmotion</p></div>
+    <div class="contact-card"><div class="contact-icon">▶️</div><h4>YouTube</h4><p>Setup guides & demos</p></div>
+    <div class="contact-card"><div class="contact-icon">𝕏</div><h4>Twitter / X</h4><p>@lightinmotion</p></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">LightInMotion</div>
+  <p style="color:var(--text-muted);font-size:15px;margin-bottom:32px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.6">Transforming spaces into immersive visual experiences, one screen at a time.</p>
+  <div class="footer-links">
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms of Service</a>
+    <a href="#">Refund Policy</a>
+    <a href="#">Documentation</a>
+    <a href="#">Changelog</a>
+  </div>
+  <div class="footer-copy">© 2026 LightInMotion. All rights reserved. Designed for the future.</div>
+</footer>
+
+<script>
+
+// Particle background
+const bgCanvas=document.getElementById('bg');
+const bCtx=bgCanvas.getContext('2d');
+bgCanvas.width=window.innerWidth;bgCanvas.height=window.innerHeight;
+window.addEventListener('resize',()=>{bgCanvas.width=window.innerWidth;bgCanvas.height=window.innerHeight;});
+const particles=[];
+for(let i=0;i<80;i++){particles.push({x:Math.random()*bgCanvas.width,y:Math.random()*bgCanvas.height,r:Math.random()*1.5+0.3,vx:(Math.random()-0.5)*0.2,vy:(Math.random()-0.5)*0.2,hue:Math.random()*60+200,alpha:Math.random()*0.3+0.05});}
+function drawBg(){
+  bCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
+  particles.forEach(p=>{
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0)p.x=bgCanvas.width;if(p.x>bgCanvas.width)p.x=0;
+    if(p.y<0)p.y=bgCanvas.height;if(p.y>bgCanvas.height)p.y=0;
+    bCtx.beginPath();bCtx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    bCtx.fillStyle=`hsla(${p.hue},100%,70%,${p.alpha})`;bCtx.fill();
+  });
+  // Draw connections
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+      const d=Math.sqrt(dx*dx+dy*dy);
+      if(d<150){bCtx.strokeStyle=`rgba(255,255,255,${0.03*(1-d/150)})`;bCtx.lineWidth=0.5;bCtx.beginPath();bCtx.moveTo(particles[i].x,particles[i].y);bCtx.lineTo(particles[j].x,particles[j].y);bCtx.stroke();}
+    }
+  }
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+
+// Hero screen canvas animation
+const hc=document.getElementById('screenCanvas');
+const hCtx=hc.getContext('2d');
+let hT=0;
+function drawHeroScreen(){
+  const w=hc.offsetWidth,h=hc.offsetHeight;
+  if(hc.width!==w||hc.height!==h){hc.width=w;hc.height=h;}
+  hT+=0.008;
+  hCtx.clearRect(0,0,w,h);
+  for(let i=0;i<5;i++){
+    const gx=(Math.sin(hT*0.7+i*1.2)+1)/2*w,gy=(Math.cos(hT*0.5+i*0.9)+1)/2*h;
+    const hue=(200+hT*30+i*30)%360;
+    const g=hCtx.createRadialGradient(gx,gy,0,gx,gy,w*0.6);
+    g.addColorStop(0,`hsla(${hue},100%,60%,0.3)`);g.addColorStop(1,'transparent');
+    hCtx.fillStyle=g;hCtx.fillRect(0,0,w,h);
+  }
+  requestAnimationFrame(drawHeroScreen);
+}
+drawHeroScreen();
+
+// Showcase canvas
+const sc=document.getElementById('showcaseCanvas');
+const sCtx=sc.getContext('2d');
+let sT=0,currentMode='movie';
+const modes={
+  movie:{hues:[220,260,200],speed:0.006,desc:'Cinema Sync'},
+  game:{hues:[120,60,0,30],speed:0.02,desc:'Gaming Reactive'},
+  music:{hues:[300,330,0,30,60],speed:0.04,desc:'Music Beat'},
+  ambient:{hues:[30,40,50],speed:0.003,desc:'Warm Ambient'}
+};
+function setMode(m){currentMode=m;}
+function drawShowcase(){
+  const w=sc.offsetWidth||sc.parentElement?.clientWidth||480,h=Math.round(w*9/16);
+  if(sc.width!==w||sc.height!==h){sc.width=w;sc.height=h;}
+  const m=modes[currentMode];sT+=m.speed;
+  sCtx.clearRect(0,0,w,h);
+  m.hues.forEach((hue,i)=>{
+    const gx=(Math.sin(sT+i*1.8)+1)/2*w,gy=(Math.cos(sT*0.7+i*1.2)+1)/2*h;
+    const cHue=(hue+sT*20)%360;
+    const g=sCtx.createRadialGradient(gx,gy,0,gx,gy,w*0.8);
+    g.addColorStop(0,`hsla(${cHue},100%,55%,0.4)`);g.addColorStop(1,'transparent');
+    sCtx.fillStyle=g;sCtx.fillRect(0,0,w,h);
+  });
+  sCtx.fillStyle='rgba(255,255,255,0.9)';sCtx.font=`bold ${Math.round(w*0.04)}px Outfit,sans-serif`;
+  sCtx.textAlign='center';sCtx.fillText(m.desc,w/2,h*0.5);
+  sCtx.font=`${Math.round(w*0.025)}px Inter,sans-serif`;sCtx.fillStyle='rgba(255,255,255,0.5)';
+  sCtx.fillText('LightInMotion Engine',w/2,h*0.5+Math.round(w*0.05));
+  requestAnimationFrame(drawShowcase);
+}
+drawShowcase();
+
+// Scroll animations
+const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.15});
+document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
+
+// FAQ toggle
+function toggleFaq(el){
+  const wasOpen = el.classList.contains('open');
+  document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));
+  if(!wasOpen) el.classList.add('open');
+}
+
+// Floating light beams effect on mouse move
+document.addEventListener('mousemove',e=>{
+  const glow=document.querySelector('.room-glow');
+  if(glow){const rect=glow.closest('.showcase-3d')?.getBoundingClientRect();if(rect){const x=((e.clientX-rect.left)/rect.width*100).toFixed(1),y=((e.clientY-rect.top)/rect.height*100).toFixed(1);glow.style.background=`radial-gradient(ellipse at ${x}% ${y}%,rgba(0,113,227,0.12) 0%,rgba(123,97,255,0.06) 40%,transparent 70%)`;}}
+});
+// Fetch dynamic data
+fetch('/api/data')
+  .then(res => res.json())
+  .then(data => {
+    if(data.pricing) {
+      if(document.getElementById('price-app')) document.getElementById('price-app').innerText = '₹' + data.pricing.app;
+      if(document.getElementById('hero-btn-price')) document.getElementById('hero-btn-price').innerText = 'Get Started – ₹' + data.pricing.app;
+    }
+    if(data.downloads) {
+      document.getElementById('ver-android').innerText = data.downloads.android.version;
+      document.getElementById('btn-android').href = data.downloads.android.url;
+      document.getElementById('ver-tv').innerText = data.downloads.tv.version;
+      document.getElementById('btn-tv').href = data.downloads.tv.url;
+      document.getElementById('ver-windows').innerText = data.downloads.windows.version;
+      document.getElementById('btn-windows').href = data.downloads.windows.url;
+    }
+  })
+  .catch(err => console.error('Error fetching data:', err));
+</script>
+</body>
+</html>
