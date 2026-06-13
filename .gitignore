@@ -1,1 +1,17 @@
-public/download/*.exe
+# Dependencies - these are huge, npm install will recreate them
+node_modules/
+
+# Large binary download files - host these separately (Google Drive, etc.)
+public/download/
+
+# Environment & secrets
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
