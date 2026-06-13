@@ -42,8 +42,8 @@ app.post('/api/data', (req, res) => {
     });
 });
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
-    console.log(`Admin panel at http://localhost:${PORT}/admin.html`);
+    console.log(`Admin panel at http://localhost:${PORT}/admin`);
 });
