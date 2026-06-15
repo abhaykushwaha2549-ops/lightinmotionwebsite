@@ -4,16 +4,16 @@
   },
   "downloads": {
     "android": {
-      "version": "v1.1.4",
-      "url": "/download/LightinMotion-v1.1.4.apk"
+      "version": "1.0.8",
+      "url": "/download/LightinMotion-v1.1.8.apk"
     },
     "tv": {
       "version": "v1.1.4",
       "url": "/download/LightinMotion-v1.1.4.apk"
     },
     "windows": {
-      "version": "v1.0.3",
-      "url": "/download/LightinMotion-Setup.exe"
+      "version": "1.0.6",
+      "url": "/download/LIGHTINMOTION Setup 1.0.6.exe"
     }
   }
 }
