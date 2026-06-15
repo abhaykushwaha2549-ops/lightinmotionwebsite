@@ -7,12 +7,36 @@ const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-const dataFile = path.join(__dirname, 'data.json');
-const downloadDir = path.join(__dirname, 'public', 'download');
+const isServerless = process.env.VERCEL === '1' || process.env.NOW_REGION;
+const dataFile = isServerless ? '/tmp/data.json' : path.join(__dirname, 'data.json');
+const downloadDir = isServerless ? '/tmp/download' : path.join(__dirname, 'public', 'download');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin";
 
+// If serverless, initialize /tmp/data.json from the committed template if it doesn't exist
+if (isServerless && !fs.existsSync(dataFile)) {
+  try {
+    const templatePath = path.join(__dirname, 'data.json');
+    if (fs.existsSync(templatePath)) {
+      fs.copyFileSync(templatePath, dataFile);
+    } else {
+      fs.writeFileSync(dataFile, '{}');
+    }
+  } catch (e) {
+    console.error('Failed to initialize ephemeral data.json in /tmp:', e);
+  }
+}
+
 // Ensure download directory exists
-if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir, { recursive: true });
+try {
+  if (!fs.existsSync(downloadDir)) {
+    fs.mkdirSync(downloadDir, { recursive: true });
+  }
+} catch (e) {
+  console.error('Failed to create download directory:', e);
+}
+
+// Serve downloads route correctly regardless of path
+app.use('/download', express.static(downloadDir));
 
 // ── Multer storage (keep original filename, store in public/download/) ──
 const storage = multer.diskStorage({
