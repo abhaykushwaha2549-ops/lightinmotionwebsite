@@ -604,12 +604,23 @@ fetch('/api/data')
       if(document.getElementById('hero-btn-price')) document.getElementById('hero-btn-price').innerText = 'Get Started – ₹' + data.pricing.app;
     }
     if(data.downloads) {
-      document.getElementById('ver-android').innerText = data.downloads.android.version;
-      document.getElementById('btn-android').href = data.downloads.android.url;
-      document.getElementById('ver-tv').innerText = data.downloads.tv.version;
-      document.getElementById('btn-tv').href = data.downloads.tv.url;
-      document.getElementById('ver-windows').innerText = data.downloads.windows.version;
-      document.getElementById('btn-windows').href = data.downloads.windows.url;
+      const setupDownload = (btnId, verId, downloadData) => {
+        const btn = document.getElementById(btnId);
+        const ver = document.getElementById(verId);
+        if (btn && ver && downloadData) {
+          ver.innerText = downloadData.version;
+          btn.href = downloadData.url;
+          if (downloadData.url.startsWith('http://') || downloadData.url.startsWith('https://')) {
+            btn.removeAttribute('download');
+            btn.target = '_blank';
+          } else {
+            btn.setAttribute('download', '');
+          }
+        }
+      };
+      setupDownload('btn-android', 'ver-android', data.downloads.android);
+      setupDownload('btn-tv', 'ver-tv', data.downloads.tv);
+      setupDownload('btn-windows', 'ver-windows', data.downloads.windows);
     }
   })
   .catch(err => console.error('Error fetching data:', err));
