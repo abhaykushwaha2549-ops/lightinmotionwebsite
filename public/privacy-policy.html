@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — LIGHTINMOTION</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #050816;
+    --bg-mid: #080d1f;
+    --card: rgba(255,255,255,0.04);
+    --card-hover: rgba(255,255,255,0.07);
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(96,165,250,0.3);
+    --blue: #2563EB;
+    --accent: #60A5FA;
+    --accent-dim: rgba(96,165,250,0.15);
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --white: #ffffff;
+    --glow: rgba(37,99,235,0.12);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(5,8,22,0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #2563EB, #60A5FA);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo-icon svg { display: block; }
+
+  .logo-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: 0.04em;
+  }
+
+  .nav-tag {
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid rgba(96,165,250,0.2);
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  /* HERO */
+  .hero {
+    padding: 160px 40px 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: 50%;
+    transform: translateX(-50%);
+    width: 700px; height: 500px;
+    background: radial-gradient(ellipse at center, rgba(37,99,235,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-text { position: relative; z-index: 2; }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(96,165,250,0.2);
+    padding: 6px 14px;
+    border-radius: 100px;
+  }
+
+  .hero-eyebrow span {
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .hero-title {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  .hero-title .gradient-text {
+    background: linear-gradient(135deg, #60A5FA 0%, #2563EB 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: 16px;
+    color: var(--text-muted);
+    margin-top: 12px;
+    letter-spacing: 0.01em;
+  }
+
+  .hero-divider {
+    width: 48px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--blue), transparent);
+    margin: 40px auto 0;
+    border-radius: 2px;
+  }
+
+  /* MAIN CONTENT */
+  .content {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 60px 24px 100px;
+  }
+
+  /* INTRO CARD */
+  .intro-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .intro-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(96,165,250,0.4), transparent);
+  }
+
+  .intro-card p {
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  /* SECTION CARDS */
+  .section-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 16px;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    opacity: 0;
+    transform: translateY(20px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .section-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.5s ease, transform 0.5s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .section-card:hover {
+    background: var(--card-hover);
+    border-color: var(--border-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(37,99,235,0.1);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .card-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(96,165,250,0.2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--accent);
+  }
+
+  .card-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .card-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: -0.01em;
+  }
+
+  .card-body {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.75;
+  }
+
+  .card-body p + p { margin-top: 12px; }
+
+  .card-body ul {
+    list-style: none;
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .card-body ul li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 15px;
+    color: var(--text-muted);
+  }
+
+  .card-body ul li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--blue);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 9px;
+  }
+
+  /* SECTION GROUP LABEL */
+  .section-group-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 40px 0 16px;
+    padding-left: 4px;
+    opacity: 0;
+    transition: opacity 0.4s ease 0.1s;
+  }
+
+  .section-group-label.visible { opacity: 1; }
+
+  /* HIGHLIGHT CARD (no sharing) */
+  .highlight-card {
+    background: linear-gradient(135deg, rgba(37,99,235,0.1), rgba(96,165,250,0.06));
+    border-color: rgba(96,165,250,0.2);
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 48px 40px;
+    text-align: center;
+    background: rgba(5,8,22,0.9);
+  }
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .footer-logo-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, #2563EB, #60A5FA);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .footer-logo-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--white);
+    letter-spacing: 0.04em;
+  }
+
+  .footer-email {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-email:hover { color: var(--white); }
+
+  .footer-copy {
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  /* SCROLL PROGRESS */
+  .scroll-progress {
+    position: fixed;
+    top: 64px; left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--blue), var(--accent));
+    width: 0%;
+    transition: width 0.1s linear;
+    z-index: 99;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 640px) {
+    nav { padding: 0 20px; }
+    .hero { padding: 120px 24px 60px; }
+    .content { padding: 40px 16px 80px; }
+    .section-card { padding: 24px 20px; }
+    .intro-card { padding: 22px 20px; }
+    .nav-tag { display: none; }
+    footer { padding: 40px 24px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .section-card { opacity: 1; transform: none; transition: none; }
+    .section-group-label { opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="logo-icon">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M9 2L11.5 7H16L12.5 10.5L14 15.5L9 12.5L4 15.5L5.5 10.5L2 7H6.5L9 2Z" fill="white"/>
+      </svg>
+    </div>
+    <span class="logo-text">LIGHTINMOTION</span>
+  </a>
+  <span class="nav-tag">Privacy Policy</span>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-text">
+    <div class="hero-eyebrow"><span></span>Smart Ambient Lighting Ecosystem</div>
+    <h1 class="hero-title">Privacy <span class="gradient-text">Policy</span></h1>
+    <p class="hero-sub">Last Updated — June 2026</p>
+    <div class="hero-divider"></div>
+  </div>
+</section>
+
+<!-- CONTENT -->
+<main class="content">
+
+  <div class="intro-card">
+    <p>LIGHTINMOTION ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how the LIGHTINMOTION mobile application collects, uses, and protects information when you use our services. The application is designed to operate primarily on your local network and does not require account creation.</p>
+  </div>
+
+  <!-- Data Collection Group -->
+  <div class="section-group-label">Information We Collect</div>
+
+  <!-- Information We Collect -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <h2 class="card-title">Information We Collect</h2>
+    </div>
+    <div class="card-body">
+      <p>LIGHTINMOTION is designed to operate primarily on your local network and does not require account creation. The application may access the following device features to provide its core functionality.</p>
+    </div>
+  </div>
+
+  <!-- Camera -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+        </svg>
+      </div>
+      <h2 class="card-title">Camera Access</h2>
+    </div>
+    <div class="card-body">
+      <p>The camera is used exclusively for scanning QR codes to connect compatible devices such as WLED controllers and LIGHTINMOTION TV devices. No images or video are stored or transmitted.</p>
+    </div>
+  </div>
+
+  <!-- Microphone -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+      </div>
+      <h2 class="card-title">Microphone Access</h2>
+    </div>
+    <div class="card-body">
+      <p>The microphone may be used for Music Sync features that allow lighting effects to react to ambient audio captured by the device. Audio data is processed in real-time on your device only and is never stored or transmitted to our servers.</p>
+    </div>
+  </div>
+
+  <!-- Screen Capture -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+      </div>
+      <h2 class="card-title">Screen Capture</h2>
+    </div>
+    <div class="card-body">
+      <p>With your explicit permission, the application may capture screen content for Mobile Sync and TV Sync features. Screen data is processed locally on your device and is not transmitted to our servers at any time.</p>
+    </div>
+  </div>
+
+  <!-- Local Network -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="6" height="6" rx="1"/><rect x="16" y="2" width="6" height="6" rx="1"/><rect x="9" y="16" width="6" height="6" rx="1"/><path d="M5 8v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/><line x1="12" y1="14" x2="12" y2="16"/>
+        </svg>
+      </div>
+      <h2 class="card-title">Local Network Access</h2>
+    </div>
+    <div class="card-body">
+      <p>The application scans your local network to discover and connect to compatible devices including WLED controllers and LIGHTINMOTION TV devices. Network discovery is limited to your local environment and no network data is transmitted externally.</p>
+    </div>
+  </div>
+
+  <!-- Usage Group -->
+  <div class="section-group-label">How We Use &amp; Store Your Data</div>
+
+  <!-- How We Use -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      </div>
+      <h2 class="card-title">How We Use Information</h2>
+    </div>
+    <div class="card-body">
+      <p>The information accessed by the application is used solely to deliver core functionality:</p>
+      <ul>
+        <li>Discover and connect compatible devices on your local network</li>
+        <li>Enable real-time lighting synchronization</li>
+        <li>Provide Music Sync functionality</li>
+        <li>Enable Mobile Sync and TV Sync features</li>
+        <li>Improve application stability and performance</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Data Storage -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+        </svg>
+      </div>
+      <h2 class="card-title">Data Storage</h2>
+    </div>
+    <div class="card-body">
+      <p>LIGHTINMOTION stores configuration information locally on your device only. This includes:</p>
+      <ul>
+        <li>Device connection settings</li>
+        <li>Lighting layouts and scene configurations</li>
+        <li>Calibration settings</li>
+        <li>User preferences and app state</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Sharing Group -->
+  <div class="section-group-label">Sharing &amp; Security</div>
+
+  <!-- Data Sharing -->
+  <div class="section-card highlight-card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8a6 6 0 0 1-7.743 5.743L10 14H7l-1.992-2H2l3-6h8"/><line x1="2" y1="22" x2="22" y2="2"/>
+        </svg>
+      </div>
+      <h2 class="card-title">Data Sharing</h2>
+    </div>
+    <div class="card-body">
+      <p>We do not sell, rent, or share personal information with third parties. The application may communicate directly with devices on your local network. No personal information is transmitted to external third-party services unless explicitly stated within the application.</p>
+    </div>
+  </div>
+
+  <!-- Security -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <h2 class="card-title">Security</h2>
+    </div>
+    <div class="card-body">
+      <p>We implement reasonable technical measures to protect information processed by the application. However, no electronic transmission or storage method is completely secure. We encourage users to keep their device software updated to maintain the highest level of protection.</p>
+    </div>
+  </div>
+
+  <!-- Rights Group -->
+  <div class="section-group-label">Your Rights &amp; Contact</div>
+
+  <!-- Children -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <h2 class="card-title">Children's Privacy</h2>
+    </div>
+    <div class="card-body">
+      <p>LIGHTINMOTION is not directed toward children under the age of 13. We do not knowingly collect or process information from children under 13. If you believe a child has provided us information, please contact us immediately.</p>
+    </div>
+  </div>
+
+  <!-- User Rights -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </div>
+      <h2 class="card-title">User Rights</h2>
+    </div>
+    <div class="card-body">
+      <p>You may revoke permissions such as Camera, Microphone, or Screen Capture at any time through your device settings. Revoking a permission will disable the features that depend on it, but will not affect other application functionality.</p>
+      <p>We may update this Privacy Policy periodically. Changes will be posted on this page with an updated revision date. Continued use of the application constitutes acceptance of any updated policy.</p>
+    </div>
+  </div>
+
+  <!-- Contact -->
+  <div class="section-card">
+    <div class="card-header">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+        </svg>
+      </div>
+      <h2 class="card-title">Contact Information</h2>
+    </div>
+    <div class="card-body">
+      <p>For questions or concerns regarding this Privacy Policy, please contact LIGHTINMOTION Support:</p>
+      <p style="margin-top:14px;">
+        <a href="mailto:lightinmotion2549@gmail.com" style="color:var(--accent);text-decoration:none;font-weight:500;transition:color 0.2s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--accent)'">lightinmotion2549@gmail.com</a>
+      </p>
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <div class="footer-logo-icon">
+      <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
+        <path d="M9 2L11.5 7H16L12.5 10.5L14 15.5L9 12.5L4 15.5L5.5 10.5L2 7H6.5L9 2Z" fill="white"/>
+      </svg>
+    </div>
+    <span class="footer-logo-text">LIGHTINMOTION</span>
+  </div>
+  <a class="footer-email" href="mailto:lightinmotion2549@gmail.com">lightinmotion2549@gmail.com</a>
+  <p class="footer-copy">© 2026 LIGHTINMOTION. All rights reserved.</p>
+</footer>
+
+<script>
+const bar = document.getElementById('scrollProgress');
+window.addEventListener('scroll', () => {
+  const scrolled = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+  bar.style.width = Math.min(scrolled, 100) + '%';
+}, { passive: true });
+
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      setTimeout(() => el.classList.add('visible'), el.dataset.delay || 0);
+      obs.unobserve(el);
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.section-card, .section-group-label').forEach((el, i) => {
+  el.dataset.delay = (i % 4) * 60;
+  obs.observe(el);
+});
+</script>
+
+</body>
+</html>
