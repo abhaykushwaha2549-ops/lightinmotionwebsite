@@ -62,6 +62,10 @@ const { handleUpload } = require('@vercel/blob/client');
 
 // ── Vercel Blob Client Token Generator ──
 app.post('/api/blob-upload', async (req, res) => {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    console.error("BLOB_READ_WRITE_TOKEN is missing in environment variables!");
+    return res.status(400).json({ error: "BLOB_READ_WRITE_TOKEN is missing. Make sure you connected the Blob store in the Vercel Storage tab and redeployed the site." });
+  }
   try {
     const jsonResponse = await handleUpload({
       body: req.body,
