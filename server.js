@@ -87,7 +87,8 @@ app.post('/api/blob-upload', async (req, res) => {
       request: req,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
         return {
-          tokenPayload: JSON.stringify({})
+          tokenPayload: JSON.stringify({}),
+          validUntil: Date.now() + 30 * 60 * 1000 // Token valid for 30 minutes
         };
       },
       onUploadCompleted: async ({ blob }) => {
