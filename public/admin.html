@@ -435,6 +435,7 @@ async function doUpload() {
     const blob = await upload(safeName, selectedFile, {
       access: 'public',
       handleUploadUrl: '/api/blob-upload',
+      multipart: true,
       onUploadProgress: (progressEvent) => {
         if (progressEvent.percentage > 10) {
           progFill.classList.remove('uploading');
