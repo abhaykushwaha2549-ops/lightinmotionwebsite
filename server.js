@@ -72,13 +72,6 @@ app.post('/api/blob-upload', async (req, res) => {
       request: req,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
         return {
-          allowedContentTypes: [
-            'application/octet-stream',
-            'application/vnd.android.package-archive',
-            'application/x-msdownload',
-            'application/zip',
-            'application/x-msi'
-          ],
           tokenPayload: JSON.stringify({})
         };
       },
