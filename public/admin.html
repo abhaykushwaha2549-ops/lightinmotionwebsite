@@ -185,6 +185,11 @@ select option{background:#1a1a1e;color:#fff;}
       </h2>
 
       <!-- Fields row -->
+      <div class="input-group" style="margin-bottom:20px;">
+        <label style="color:var(--orange);">GitHub Personal Access Token (Required for Vercel)</label>
+        <input type="password" id="gh-token" placeholder="Paste ghp_... (Stored locally on your device)" oninput="localStorage.setItem('lim_github_token', this.value)">
+      </div>
+
       <div class="fields-row">
         <div class="input-group" style="margin-bottom:0;">
           <label>Target Platform</label>
@@ -292,6 +297,7 @@ function login() {
     sessionPass = pass;
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('gh-token').value = localStorage.getItem('lim_github_token') || '';
     populateForms(data);
     loadFiles();
   })
@@ -382,66 +388,156 @@ function onFileSelected(file) {
 // ── Upload ──
 function doUpload() {
   if (!selectedFile) return;
+  const ghToken = (document.getElementById('gh-token').value || '').trim();
+  if (!ghToken) {
+    showUploadMsg('❌ Error: GitHub Personal Access Token is required to upload files on Vercel.', 'error');
+    return;
+  }
+
   const platform = document.getElementById('up-platform').value;
   const version  = document.getElementById('up-version').value.trim();
   const notes    = document.getElementById('up-notes').value.trim();
-
-  const formData = new FormData();
-  formData.append('file', selectedFile);
-  formData.append('platform', platform);
-  formData.append('version', version);
-  formData.append('notes', notes);
-
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', `/api/upload?password=${encodeURIComponent(sessionPass)}`);
+  const repo = 'abhaykushwaha2549-ops/lightinmotionwebsite';
+  const tag = version ? `v${version.replace(/^v/i, '')}` : 'v1.0.0';
 
   document.getElementById('progress-wrap').style.display = 'block';
   document.getElementById('upload-btn').disabled = true;
   hideUploadMsg();
 
-  xhr.upload.onprogress = e => {
-    if (e.lengthComputable) {
-      const pct = Math.round((e.loaded / e.total) * 100);
-      document.getElementById('prog-fill').style.width = pct + '%';
-      document.getElementById('prog-text').textContent = pct + '%';
-    }
+  // 1. Get or create release
+  showUploadMsg('🔍 Finding or creating GitHub Release...', 'info');
+
+  const headers = {
+    'Authorization': `token ${ghToken}`,
+    'Accept': 'application/vnd.github.v3+json'
   };
 
-  xhr.onload = () => {
-    document.getElementById('progress-wrap').style.display = 'none';
-    document.getElementById('upload-btn').disabled = false;
-    if (xhr.status === 200) {
-      const res = JSON.parse(xhr.responseText);
-      showUploadMsg(`✅ Uploaded successfully! Download URL: <strong>${res.url}</strong>`, 'success');
-      // Auto-fill download URL in Downloads tab
-      if (platform === 'android') { document.getElementById('u-android').value = res.url; if (version) document.getElementById('v-android').value = version; }
-      else if (platform === 'tv') { document.getElementById('u-tv').value = res.url; if (version) document.getElementById('v-tv').value = version; }
-      else if (platform === 'windows') { document.getElementById('u-windows').value = res.url; if (version) document.getElementById('v-windows').value = version; }
+  fetch(`https://api.github.com/repos/${repo}/releases/tags/${tag}`, { headers })
+    .then(res => {
+      if (res.status === 404) {
+        // Create release
+        return fetch(`https://api.github.com/repos/${repo}/releases`, {
+          method: 'POST',
+          headers: { ...headers, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tag_name: tag,
+            name: tag,
+            body: notes || `Automated upload of assets for version ${tag}`
+          })
+        }).then(r => {
+          if (!r.ok) throw new Error('Failed to create GitHub release');
+          return r.json();
+        });
+      }
+      if (!res.ok) throw new Error('GitHub API returned error: ' + res.statusText);
+      return res.json();
+    })
+    .then(release => {
+      // 2. Delete existing asset with same name if it exists
+      const existing = release.assets.find(a => a.name === selectedFile.name);
+      if (existing) {
+        showUploadMsg('🗑️ Deleting old asset from release...', 'info');
+        return fetch(`https://api.github.com/repos/${repo}/releases/assets/${existing.id}`, {
+          method: 'DELETE',
+          headers
+        }).then(r => {
+          if (!r.ok) console.warn('Could not delete existing asset');
+          return release;
+        });
+      }
+      return release;
+    })
+    .then(release => {
+      // 3. Upload file directly to GitHub
+      showUploadMsg('📤 Uploading file directly to GitHub Releases...', 'info');
+      let uploadUrl = release.upload_url.split('{')[0] + '?name=' + encodeURIComponent(selectedFile.name);
+
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', uploadUrl);
+        xhr.setRequestHeader('Authorization', `token ${ghToken}`);
+        xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+
+        xhr.upload.onprogress = e => {
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            document.getElementById('prog-fill').style.width = pct + '%';
+            document.getElementById('prog-text').textContent = pct + '%';
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status === 201 || xhr.status === 200) {
+            resolve(JSON.parse(xhr.responseText));
+          } else {
+            reject(new Error(`GitHub upload failed: ${xhr.statusText} (${xhr.status})`));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Network error during GitHub upload.'));
+        xhr.send(selectedFile);
+      });
+    })
+    .then(assetData => {
+      const downloadUrl = assetData.browser_download_url;
+      if (!platform) {
+        return downloadUrl;
+      }
+
+      // 4. Update data.json directly in the GitHub repository
+      showUploadMsg('📝 Publishing changes to GitHub repository (data.json)...', 'info');
+      return fetch(`https://api.github.com/repos/${repo}/contents/data.json`, { headers })
+        .then(r => {
+          if (!r.ok) throw new Error('Failed to read data.json from GitHub');
+          return r.json();
+        })
+        .then(fileInfo => {
+          const contentDecoded = decodeURIComponent(escape(atob(fileInfo.content.replace(/\s/g, ''))));
+          const dataJsonObj = JSON.parse(contentDecoded);
+
+          if (!dataJsonObj.downloads) dataJsonObj.downloads = {};
+          if (!dataJsonObj.downloads[platform]) dataJsonObj.downloads[platform] = {};
+          dataJsonObj.downloads[platform].version = version;
+          dataJsonObj.downloads[platform].url = downloadUrl;
+
+          const updatedBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(dataJsonObj, null, 2))));
+
+          return fetch(`https://api.github.com/repos/${repo}/contents/data.json`, {
+            method: 'PUT',
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: `chore: update download URL for ${platform} ${version} via admin panel`,
+              content: updatedBase64,
+              sha: fileInfo.sha
+            })
+          });
+        })
+        .then(r => {
+          if (!r.ok) throw new Error('Failed to commit updated data.json to GitHub');
+          return downloadUrl;
+        });
+    })
+    .then(downloadUrl => {
+      document.getElementById('progress-wrap').style.display = 'none';
+      document.getElementById('upload-btn').disabled = false;
+      showUploadMsg(`✅ Published successfully! Vercel will redeploy changes in 1 minute.<br>Download URL: <a href="${downloadUrl}" target="_blank" style="color:var(--cyan);text-decoration:underline;">${downloadUrl}</a>`, 'success');
+
+      // Auto-fill download URL in Downloads tab UI
+      if (platform === 'android') { document.getElementById('u-android').value = downloadUrl; if (version) document.getElementById('v-android').value = version; }
+      else if (platform === 'tv') { document.getElementById('u-tv').value = downloadUrl; if (version) document.getElementById('v-tv').value = version; }
+      else if (platform === 'windows') { document.getElementById('u-windows').value = downloadUrl; if (version) document.getElementById('v-windows').value = version; }
+
       // Reset file picker
       selectedFile = null;
       document.getElementById('selected-file').style.display = 'none';
       document.getElementById('file-input').value = '';
       document.getElementById('upload-btn').disabled = true;
-      loadFiles();
-    } else {
-      let errMsg = 'Unknown error';
-      try {
-        const err = JSON.parse(xhr.responseText);
-        errMsg = err.error || 'Unknown error';
-      } catch(e) {
-        errMsg = xhr.statusText || `Server returned status ${xhr.status}`;
-      }
-      showUploadMsg('❌ Upload failed: ' + errMsg, 'error');
-    }
-  };
-
-  xhr.onerror = () => {
-    document.getElementById('progress-wrap').style.display = 'none';
-    document.getElementById('upload-btn').disabled = false;
-    showUploadMsg('❌ Network error during upload.', 'error');
-  };
-
-  xhr.send(formData);
+    })
+    .catch(err => {
+      document.getElementById('progress-wrap').style.display = 'none';
+      document.getElementById('upload-btn').disabled = false;
+      showUploadMsg(`❌ Failed: ${err.message}`, 'error');
+    });
 }
 
 function showUploadMsg(html, type) {
