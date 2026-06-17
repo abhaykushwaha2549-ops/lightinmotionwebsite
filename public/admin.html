@@ -424,8 +424,14 @@ function doUpload() {
       document.getElementById('upload-btn').disabled = true;
       loadFiles();
     } else {
-      const err = JSON.parse(xhr.responseText);
-      showUploadMsg('❌ Upload failed: ' + (err.error || 'Unknown error'), 'error');
+      let errMsg = 'Unknown error';
+      try {
+        const err = JSON.parse(xhr.responseText);
+        errMsg = err.error || 'Unknown error';
+      } catch(e) {
+        errMsg = xhr.statusText || `Server returned status ${xhr.status}`;
+      }
+      showUploadMsg('❌ Upload failed: ' + errMsg, 'error');
     }
   };
 
