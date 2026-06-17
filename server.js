@@ -8,23 +8,10 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const isServerless = process.env.VERCEL === '1' || process.env.NOW_REGION;
-const dataFile = isServerless ? '/tmp/data.json' : path.join(__dirname, 'data.json');
+const dataFile = path.join(__dirname, 'data.json');
 const downloadDir = isServerless ? '/tmp/download' : path.join(__dirname, 'public', 'download');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin";
 
-// If serverless, initialize /tmp/data.json from the committed template if it doesn't exist
-if (isServerless && !fs.existsSync(dataFile)) {
-  try {
-    const templatePath = path.join(__dirname, 'data.json');
-    if (fs.existsSync(templatePath)) {
-      fs.copyFileSync(templatePath, dataFile);
-    } else {
-      fs.writeFileSync(dataFile, '{}');
-    }
-  } catch (e) {
-    console.error('Failed to initialize ephemeral data.json in /tmp:', e);
-  }
-}
 
 // Ensure download directory exists
 try {

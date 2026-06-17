@@ -338,6 +338,18 @@ function showSaveBar() {
 
 // ── Save text data ──
 function saveData() {
+  const ghToken = (document.getElementById('gh-token').value || '').trim();
+  if (!ghToken) {
+    alert('GitHub Personal Access Token is required in the Upload tab to publish changes on Vercel.');
+    return;
+  }
+
+  const repo = 'abhaykushwaha2549-ops/lightinmotionwebsite';
+  const headers = {
+    'Authorization': `token ${ghToken}`,
+    'Accept': 'application/vnd.github.v3+json'
+  };
+
   const newData = {
     pricing: { app: document.getElementById('p-app').value },
     downloads: {
@@ -346,19 +358,33 @@ function saveData() {
       windows: { version: document.getElementById('v-windows').value, url: document.getElementById('u-windows').value }
     }
   };
-  fetch('/api/data', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password: sessionPass, data: newData })
-  })
-  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then(() => {
-    document.getElementById('save-bar').classList.remove('visible');
-    const msg = document.getElementById('msg');
-    msg.style.display = 'inline-block';
-    setTimeout(() => msg.style.display = 'none', 3000);
-  })
-  .catch(err => alert('Error saving: ' + err.message));
+
+  fetch(`https://api.github.com/repos/${repo}/contents/data.json`, { headers })
+    .then(r => {
+      if (!r.ok) throw new Error('Failed to read data.json from GitHub');
+      return r.json();
+    })
+    .then(fileInfo => {
+      const updatedBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(newData, null, 2))));
+      return fetch(`https://api.github.com/repos/${repo}/contents/data.json`, {
+        method: 'PUT',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: 'chore: update app configurations via admin panel',
+          content: updatedBase64,
+          sha: fileInfo.sha
+        })
+      });
+    })
+    .then(r => {
+      if (!r.ok) throw new Error('Failed to commit data.json to GitHub');
+      document.getElementById('save-bar').classList.remove('visible');
+      const msg = document.getElementById('msg');
+      msg.textContent = 'Saved & Redeploying...';
+      msg.style.display = 'inline-block';
+      setTimeout(() => { msg.style.display = 'none'; msg.textContent = 'Saved successfully!'; }, 5000);
+    })
+    .catch(err => alert('Error saving directly to GitHub: ' + err.message));
 }
 
 // ── Drag-drop ──
