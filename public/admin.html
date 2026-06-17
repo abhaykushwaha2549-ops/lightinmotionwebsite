@@ -417,6 +417,7 @@ async function doUpload() {
     const blob = await upload(selectedFile.name, selectedFile, {
       access: 'public',
       handleUploadUrl: '/api/blob-upload',
+      multipart: true,
       onUploadProgress: (progressEvent) => {
         const pct = Math.round(progressEvent.percentage);
         document.getElementById('prog-fill').style.width = pct + '%';
