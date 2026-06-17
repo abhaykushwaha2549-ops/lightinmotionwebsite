@@ -287,7 +287,10 @@ function login() {
     if (!r.ok) throw new Error('Unauthorized');
     return fetch('/api/data');
   })
-  .then(r => r.json())
+  .then(r => {
+    if (!r.ok) throw new Error('Failed to load website configurations (data.json)');
+    return r.json();
+  })
   .then(data => {
     currentData = data;
     sessionPass = pass;
@@ -296,8 +299,14 @@ function login() {
     populateForms(data);
     loadFiles();
   })
-  .catch(() => {
-    document.getElementById('login-err').style.display = 'block';
+  .catch((err) => {
+    const errEl = document.getElementById('login-err');
+    if (err.message === 'Unauthorized') {
+      errEl.textContent = 'Incorrect password';
+    } else {
+      errEl.textContent = err.message || 'Connection error';
+    }
+    errEl.style.display = 'block';
   });
 }
 
