@@ -66,7 +66,20 @@ const { handleUpload } = require('@vercel/blob/client');
 app.post('/api/blob-upload', async (req, res) => {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     console.error("BLOB_READ_WRITE_TOKEN is missing in environment variables!");
-    return res.status(400).json({ error: "BLOB_READ_WRITE_TOKEN is missing. Make sure you connected the Blob store in the Vercel Storage tab and redeployed the site." });
+    const filteredKeys = Object.keys(process.env).filter(k => {
+      const upper = k.toUpperCase();
+      return !upper.includes('TOKEN') && 
+             !upper.includes('PASSWORD') && 
+             !upper.includes('SECRET') && 
+             !upper.includes('KEY') && 
+             !upper.includes('AUTH') && 
+             !upper.includes('PASS') &&
+             !upper.includes('BLOB');
+    });
+    return res.status(400).json({ 
+      error: "BLOB_READ_WRITE_TOKEN is missing.",
+      details: `Available non-sensitive env keys: ${filteredKeys.join(', ')}`
+    });
   }
   try {
     const jsonResponse = await handleUpload({
