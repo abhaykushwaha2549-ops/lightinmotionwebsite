@@ -412,148 +412,101 @@ function onFileSelected(file) {
 }
 
 // ── Upload ──
-function doUpload() {
+// ── Upload ──
+async function doUpload() {
   if (!selectedFile) return;
-  const ghToken = (document.getElementById('gh-token').value || '').trim();
-  if (!ghToken) {
-    showUploadMsg('❌ Error: GitHub Personal Access Token is required to upload files on Vercel.', 'error');
-    return;
-  }
 
   const platform = document.getElementById('up-platform').value;
   const version  = document.getElementById('up-version').value.trim();
   const repo = 'abhaykushwaha2549-ops/lightinmotionwebsite';
-  const filePath = `public/download/${selectedFile.name}`;
-  const downloadUrl = `/download/${selectedFile.name}`;
+  const ghToken = (document.getElementById('gh-token').value || '').trim();
+
+  if (!ghToken) {
+    showUploadMsg('❌ Error: GitHub Personal Access Token is required to publish the updated version config to Vercel.', 'error');
+    return;
+  }
 
   document.getElementById('progress-wrap').style.display = 'block';
-  document.getElementById('prog-fill').style.width = '20%';
-  document.getElementById('prog-text').textContent = '20%';
+  document.getElementById('prog-fill').style.width = '10%';
+  document.getElementById('prog-text').textContent = '10%';
   document.getElementById('upload-btn').disabled = true;
   hideUploadMsg();
 
-  showUploadMsg('🔍 Preparing file and checking repository...', 'info');
-
-  const headers = {
-    'Authorization': `token ${ghToken}`,
-    'Accept': 'application/vnd.github.v3+json'
-  };
-
-  // 1. Check if the file already exists in public/download/ to get its SHA (needed for overwrite)
-  fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, { headers })
-    .then(res => {
-      if (res.status === 200) {
-        return res.json().then(data => data.sha);
+  try {
+    // 1. Upload the file directly to Vercel Blob from the browser
+    showUploadMsg('📤 Uploading file directly to Vercel Blob storage (Supports files up to 500MB)...', 'info');
+    
+    const { upload } = await import("https://esm.sh/@vercel/blob@0.23.4/client");
+    
+    const blob = await upload(selectedFile.name, selectedFile, {
+      access: 'public',
+      handleUploadUrl: '/api/blob-upload',
+      onUploadProgress: (progressEvent) => {
+        const pct = Math.round(progressEvent.percentage);
+        document.getElementById('prog-fill').style.width = pct + '%';
+        document.getElementById('prog-text').textContent = pct + '%';
       }
-      return null; // File doesn't exist yet
-    })
-    .then(existingSha => {
-      // 2. Read the file as Base64 in the browser
-      showUploadMsg('📦 Encoding file to Base64...', 'info');
-      document.getElementById('prog-fill').style.width = '40%';
-      document.getElementById('prog-text').textContent = '40%';
+    });
 
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const base64 = reader.result.split(',')[1];
-          resolve({ base64, sha: existingSha });
-        };
-        reader.onerror = () => reject(new Error('Failed to read file on your local device.'));
-        reader.readAsDataURL(selectedFile);
-      });
-    })
-    .then(({ base64, sha }) => {
-      // 3. Upload the file to GitHub repository contents using PUT
-      showUploadMsg('📤 Uploading binary directly to your GitHub repository...', 'info');
-      document.getElementById('prog-fill').style.width = '60%';
-      document.getElementById('prog-text').textContent = '60%';
+    const downloadUrl = blob.url;
 
-      const body = {
-        message: `chore: upload release binary ${selectedFile.name} via admin panel`,
-        content: base64
-      };
-      if (sha) {
-        body.sha = sha; // Pass SHA to overwrite the file
-      }
+    // 2. Commit the new URL and version to data.json on GitHub
+    showUploadMsg('📝 Publishing changes to GitHub repository (data.json)...', 'info');
+    
+    const headers = {
+      'Authorization': `token ${ghToken}`,
+      'Accept': 'application/vnd.github.v3+json'
+    };
 
-      return fetch(`https://api.github.com/repos/${repo}/contents/${filePath}`, {
-        method: 'PUT',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      }).then(r => {
-        if (!r.ok) {
-          return r.text().then(t => {
-            throw new Error(`Failed to commit binary to GitHub: ${t}`);
-          });
-        }
+    const fileInfo = await fetch(`https://api.github.com/repos/${repo}/contents/data.json`, { headers })
+      .then(r => {
+        if (!r.ok) throw new Error('Failed to read data.json from GitHub');
         return r.json();
       });
-    })
-    .then(() => {
-      if (!platform) {
-        return downloadUrl;
-      }
 
-      // 4. Update data.json directly in the GitHub repository
-      showUploadMsg('📝 Committing download URL changes to data.json...', 'info');
-      document.getElementById('prog-fill').style.width = '80%';
-      document.getElementById('prog-text').textContent = '80%';
+    const contentDecoded = decodeURIComponent(escape(atob(fileInfo.content.replace(/\s/g, ''))));
+    const dataJsonObj = JSON.parse(contentDecoded);
 
-      return fetch(`https://api.github.com/repos/${repo}/contents/data.json`, { headers })
-        .then(r => {
-          if (!r.ok) throw new Error('Failed to read data.json from GitHub');
-          return r.json();
-        })
-        .then(fileInfo => {
-          const contentDecoded = decodeURIComponent(escape(atob(fileInfo.content.replace(/\s/g, ''))));
-          const dataJsonObj = JSON.parse(contentDecoded);
+    if (!dataJsonObj.downloads) dataJsonObj.downloads = {};
+    if (!dataJsonObj.downloads[platform]) dataJsonObj.downloads[platform] = {};
+    dataJsonObj.downloads[platform].version = version;
+    dataJsonObj.downloads[platform].url = downloadUrl;
 
-          if (!dataJsonObj.downloads) dataJsonObj.downloads = {};
-          if (!dataJsonObj.downloads[platform]) dataJsonObj.downloads[platform] = {};
-          dataJsonObj.downloads[platform].version = version;
-          dataJsonObj.downloads[platform].url = downloadUrl;
+    const updatedBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(dataJsonObj, null, 2))));
 
-          const updatedBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(dataJsonObj, null, 2))));
-
-          return fetch(`https://api.github.com/repos/${repo}/contents/data.json`, {
-            method: 'PUT',
-            headers: { ...headers, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              message: `chore: update download URL for ${platform} ${version} via admin panel`,
-              content: updatedBase64,
-              sha: fileInfo.sha
-            })
-          });
-        })
-        .then(r => {
-          if (!r.ok) throw new Error('Failed to commit updated data.json to GitHub');
-          return downloadUrl;
-        });
-    })
-    .then(downloadUrl => {
-      document.getElementById('prog-fill').style.width = '100%';
-      document.getElementById('prog-text').textContent = '100%';
-      document.getElementById('progress-wrap').style.display = 'none';
-      document.getElementById('upload-btn').disabled = false;
-      showUploadMsg(`✅ Published successfully! Vercel will redeploy changes in 1 minute.<br>File Path: <strong style="color:var(--cyan);">${downloadUrl}</strong>`, 'success');
-
-      // Auto-fill download URL in Downloads tab UI
-      if (platform === 'android') { document.getElementById('u-android').value = downloadUrl; if (version) document.getElementById('v-android').value = version; }
-      else if (platform === 'tv') { document.getElementById('u-tv').value = downloadUrl; if (version) document.getElementById('v-tv').value = version; }
-      else if (platform === 'windows') { document.getElementById('u-windows').value = downloadUrl; if (version) document.getElementById('v-windows').value = version; }
-
-      // Reset file picker
-      selectedFile = null;
-      document.getElementById('selected-file').style.display = 'none';
-      document.getElementById('file-input').value = '';
-      document.getElementById('upload-btn').disabled = true;
-    })
-    .catch(err => {
-      document.getElementById('progress-wrap').style.display = 'none';
-      document.getElementById('upload-btn').disabled = false;
-      showUploadMsg(`❌ Failed: ${err.message}`, 'error');
+    const commitRes = await fetch(`https://api.github.com/repos/${repo}/contents/data.json`, {
+      method: 'PUT',
+      headers: { ...headers, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `chore: update download URL for ${platform} ${version} via admin panel`,
+        content: updatedBase64,
+        sha: fileInfo.sha
+      })
     });
+
+    if (!commitRes.ok) throw new Error('Failed to commit updated data.json to GitHub');
+
+    // 3. Complete UI update
+    document.getElementById('progress-wrap').style.display = 'none';
+    document.getElementById('upload-btn').disabled = false;
+    showUploadMsg(`✅ Published successfully! Vercel will redeploy changes in 1 minute.<br>Download URL: <a href="${downloadUrl}" target="_blank" style="color:var(--cyan);text-decoration:underline;">${downloadUrl}</a>`, 'success');
+
+    // Auto-fill download URL in Downloads tab UI
+    if (platform === 'android') { document.getElementById('u-android').value = downloadUrl; if (version) document.getElementById('v-android').value = version; }
+    else if (platform === 'tv') { document.getElementById('u-tv').value = downloadUrl; if (version) document.getElementById('v-tv').value = version; }
+    else if (platform === 'windows') { document.getElementById('u-windows').value = downloadUrl; if (version) document.getElementById('v-windows').value = version; }
+
+    // Reset file picker
+    selectedFile = null;
+    document.getElementById('selected-file').style.display = 'none';
+    document.getElementById('file-input').value = '';
+    document.getElementById('upload-btn').disabled = true;
+
+  } catch (err) {
+    document.getElementById('progress-wrap').style.display = 'none';
+    document.getElementById('upload-btn').disabled = false;
+    showUploadMsg(`❌ Failed: ${err.message}`, 'error');
+  }
 }
 
 function showUploadMsg(html, type) {

@@ -58,6 +58,36 @@ app.post('/api/verify', (req, res) => {
   res.status(401).json({ error: 'Unauthorized' });
 });
 
+const { handleUpload } = require('@vercel/blob/client');
+
+// ── Vercel Blob Client Token Generator ──
+app.post('/api/blob-upload', async (req, res) => {
+  try {
+    const jsonResponse = await handleUpload({
+      body: req.body,
+      request: req,
+      onBeforeGenerateToken: async (pathname, clientPayload) => {
+        return {
+          allowedContentTypes: [
+            'application/octet-stream',
+            'application/vnd.android.package-archive',
+            'application/x-msdownload',
+            'application/zip',
+            'application/x-msi'
+          ],
+          tokenPayload: JSON.stringify({})
+        };
+      },
+      onUploadCompleted: async ({ blob }) => {
+        console.log('Blob upload completed:', blob.url);
+      }
+    });
+    res.json(jsonResponse);
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
 // ── Get data ──
 app.get('/api/data', (req, res) => {
   fs.readFile(dataFile, 'utf8', (err, raw) => {
