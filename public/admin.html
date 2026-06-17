@@ -414,7 +414,10 @@ async function doUpload() {
     
     const { upload } = await import("https://esm.sh/@vercel/blob@0.23.4/client");
     
-    const blob = await upload(selectedFile.name, selectedFile, {
+    // Sanitize filename: replace spaces and special characters to prevent Vercel MPU 400 errors
+    const safeName = selectedFile.name.replace(/[^a-zA-Z0-9._\-()]/g, '_');
+    
+    const blob = await upload(safeName, selectedFile, {
       access: 'public',
       handleUploadUrl: '/api/blob-upload',
       multipart: true,
