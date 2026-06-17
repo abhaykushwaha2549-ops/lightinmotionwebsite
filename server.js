@@ -10,6 +10,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const isServerless = process.env.VERCEL === '1' || process.env.NOW_REGION;
 const dataFile = path.join(__dirname, 'data.json');
 const downloadDir = isServerless ? '/tmp/download' : path.join(__dirname, 'public', 'download');
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin";
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPO = 'abhaykushwaha2549-ops/lightinmotionwebsite'; // Target repository
 
