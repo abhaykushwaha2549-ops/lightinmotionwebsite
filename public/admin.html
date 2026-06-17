@@ -185,10 +185,6 @@ select option{background:#1a1a1e;color:#fff;}
       </h2>
 
       <!-- Fields row -->
-      <div class="input-group" style="margin-bottom:20px;">
-        <label style="color:var(--orange);">GitHub Personal Access Token (Required for Vercel)</label>
-        <input type="password" id="gh-token" placeholder="Paste ghp_... (Stored locally on your device)" oninput="localStorage.setItem('lim_github_token', this.value)">
-      </div>
 
       <div class="fields-row">
         <div class="input-group" style="margin-bottom:0;">
@@ -297,7 +293,6 @@ function login() {
     sessionPass = pass;
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
-    document.getElementById('gh-token').value = localStorage.getItem('lim_github_token') || '';
     populateForms(data);
     loadFiles();
   })
@@ -338,18 +333,6 @@ function showSaveBar() {
 
 // ── Save text data ──
 function saveData() {
-  const ghToken = (document.getElementById('gh-token').value || '').trim();
-  if (!ghToken) {
-    alert('GitHub Personal Access Token is required in the Upload tab to publish changes on Vercel.');
-    return;
-  }
-
-  const repo = 'abhaykushwaha2549-ops/lightinmotionwebsite';
-  const headers = {
-    'Authorization': `token ${ghToken}`,
-    'Accept': 'application/vnd.github.v3+json'
-  };
-
   const newData = {
     pricing: { app: document.getElementById('p-app').value },
     downloads: {
@@ -359,32 +342,23 @@ function saveData() {
     }
   };
 
-  fetch(`https://api.github.com/repos/${repo}/contents/data.json`, { headers })
-    .then(r => {
-      if (!r.ok) throw new Error('Failed to read data.json from GitHub');
-      return r.json();
-    })
-    .then(fileInfo => {
-      const updatedBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(newData, null, 2))));
-      return fetch(`https://api.github.com/repos/${repo}/contents/data.json`, {
-        method: 'PUT',
-        headers: { ...headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: 'chore: update app configurations via admin panel',
-          content: updatedBase64,
-          sha: fileInfo.sha
-        })
-      });
-    })
-    .then(r => {
-      if (!r.ok) throw new Error('Failed to commit data.json to GitHub');
-      document.getElementById('save-bar').classList.remove('visible');
-      const msg = document.getElementById('msg');
-      msg.textContent = 'Saved & Redeploying...';
-      msg.style.display = 'inline-block';
-      setTimeout(() => { msg.style.display = 'none'; msg.textContent = 'Saved successfully!'; }, 5000);
-    })
-    .catch(err => alert('Error saving directly to GitHub: ' + err.message));
+  fetch('/api/data', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password: sessionPass, data: newData })
+  })
+  .then(r => {
+    if (!r.ok) return r.json().then(e => { throw new Error(e.error || 'Failed to save'); });
+    return r.json();
+  })
+  .then(() => {
+    document.getElementById('save-bar').classList.remove('visible');
+    const msg = document.getElementById('msg');
+    msg.textContent = 'Saved & Redeploying...';
+    msg.style.display = 'inline-block';
+    setTimeout(() => { msg.style.display = 'none'; msg.textContent = 'Saved successfully!'; }, 5000);
+  })
+  .catch(err => alert('Error saving configurations: ' + err.message));
 }
 
 // ── Drag-drop ──
@@ -418,13 +392,6 @@ async function doUpload() {
 
   const platform = document.getElementById('up-platform').value;
   const version  = document.getElementById('up-version').value.trim();
-  const repo = 'abhaykushwaha2549-ops/lightinmotionwebsite';
-  const ghToken = (document.getElementById('gh-token').value || '').trim();
-
-  if (!ghToken) {
-    showUploadMsg('❌ Error: GitHub Personal Access Token is required to publish the updated version config to Vercel.', 'error');
-    return;
-  }
 
   document.getElementById('progress-wrap').style.display = 'block';
   document.getElementById('prog-fill').style.width = '10%';
@@ -450,41 +417,27 @@ async function doUpload() {
 
     const downloadUrl = blob.url;
 
-    // 2. Commit the new URL and version to data.json on GitHub
-    showUploadMsg('📝 Publishing changes to GitHub repository (data.json)...', 'info');
+    // 2. Post updated data to backend /api/data
+    showUploadMsg('📝 Publishing changes to website configurations...', 'info');
     
-    const headers = {
-      'Authorization': `token ${ghToken}`,
-      'Accept': 'application/vnd.github.v3+json'
-    };
+    const updatedData = { ...currentData };
+    if (!updatedData.downloads) updatedData.downloads = {};
+    if (!updatedData.downloads[platform]) updatedData.downloads[platform] = {};
+    updatedData.downloads[platform].version = version;
+    updatedData.downloads[platform].url = downloadUrl;
 
-    const fileInfo = await fetch(`https://api.github.com/repos/${repo}/contents/data.json`, { headers })
-      .then(r => {
-        if (!r.ok) throw new Error('Failed to read data.json from GitHub');
-        return r.json();
-      });
-
-    const contentDecoded = decodeURIComponent(escape(atob(fileInfo.content.replace(/\s/g, ''))));
-    const dataJsonObj = JSON.parse(contentDecoded);
-
-    if (!dataJsonObj.downloads) dataJsonObj.downloads = {};
-    if (!dataJsonObj.downloads[platform]) dataJsonObj.downloads[platform] = {};
-    dataJsonObj.downloads[platform].version = version;
-    dataJsonObj.downloads[platform].url = downloadUrl;
-
-    const updatedBase64 = btoa(unescape(encodeURIComponent(JSON.stringify(dataJsonObj, null, 2))));
-
-    const commitRes = await fetch(`https://api.github.com/repos/${repo}/contents/data.json`, {
-      method: 'PUT',
-      headers: { ...headers, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: `chore: update download URL for ${platform} ${version} via admin panel`,
-        content: updatedBase64,
-        sha: fileInfo.sha
-      })
+    const commitRes = await fetch('/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: sessionPass, data: updatedData })
     });
 
-    if (!commitRes.ok) throw new Error('Failed to commit updated data.json to GitHub');
+    if (!commitRes.ok) {
+      const errorJson = await commitRes.json().catch(() => ({}));
+      throw new Error(errorJson.error || 'Failed to update website configurations');
+    }
+
+    currentData = updatedData;
 
     // 3. Complete UI update
     document.getElementById('progress-wrap').style.display = 'none';

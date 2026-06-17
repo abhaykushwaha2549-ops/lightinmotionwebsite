@@ -10,7 +10,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 const isServerless = process.env.VERCEL === '1' || process.env.NOW_REGION;
 const dataFile = path.join(__dirname, 'data.json');
 const downloadDir = isServerless ? '/tmp/download' : path.join(__dirname, 'public', 'download');
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin";
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_REPO = 'abhaykushwaha2549-ops/lightinmotionwebsite'; // Target repository
 
 
 // Ensure download directory exists
@@ -94,17 +95,50 @@ app.get('/api/data', (req, res) => {
 });
 
 // ── Update text data ──
-app.post('/api/data', (req, res) => {
+app.post('/api/data', async (req, res) => {
   const { password, data } = req.body;
   if (password !== ADMIN_PASSWORD) return res.status(401).json({ error: 'Unauthorized' });
+
+  if (GITHUB_TOKEN) {
+    try {
+      const getRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data.json`, {
+        headers: {
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Node-Express-App'
+        }
+      });
+      if (!getRes.ok) throw new Error(`Failed to fetch data.json from GitHub: ${await getRes.text()}`);
+      const fileInfo = await getRes.json();
+
+      const updatedBase64 = Buffer.from(JSON.stringify(data, null, 2)).toString('base64');
+      const commitRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/data.json`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Node-Express-App'
+        },
+        body: JSON.stringify({
+          message: 'chore: update app configurations via admin panel',
+          content: updatedBase64,
+          sha: fileInfo.sha
+        })
+      });
+      if (!commitRes.ok) throw new Error(`Failed to commit data.json to GitHub: ${await commitRes.text()}`);
+    } catch (err) {
+      console.error('Error committing to GitHub:', err);
+      return res.status(500).json({ error: `GitHub sync failed: ${err.message}` });
+    }
+  }
+
   fs.writeFile(dataFile, JSON.stringify(data, null, 2), 'utf8', err => {
     if (err) return res.status(500).json({ error: 'Failed to save data' });
     res.json({ success: true });
   });
 });
 
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_REPO = 'abhaykushwaha2549-ops/lightinmotionwebsite'; // Target repository
 
 async function uploadToGitHub(filePath, filename, version) {
   if (!GITHUB_TOKEN) throw new Error('GITHUB_TOKEN environment variable is not configured');
