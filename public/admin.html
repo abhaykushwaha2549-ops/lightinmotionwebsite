@@ -80,6 +80,18 @@ select option{background:#1a1a1e;color:#fff;}
 .progress-bar-fill{height:100%;background:linear-gradient(90deg,#00e5c8,#0071E3);border-radius:99px;transition:width .1s;}
 .progress-text{font-size:13px;color:var(--text-muted);margin-top:8px;text-align:right;}
 
+@keyframes loading-slide {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.progress-bar-fill.uploading {
+  width: 100% !important;
+  background: linear-gradient(90deg, #00e5c8, #0071E3, #00e5c8) !important;
+  background-size: 200% 200% !important;
+  animation: loading-slide 2.5s infinite linear !important;
+}
+
 /* Upload status */
 .upload-msg{display:none;padding:14px 18px;border-radius:12px;font-size:14px;margin-bottom:16px;font-weight:500;}
 .upload-msg.success{background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.3);color:var(--green);}
@@ -402,15 +414,18 @@ async function doUpload() {
   const platform = document.getElementById('up-platform').value;
   const version  = document.getElementById('up-version').value.trim();
 
+  const progFill = document.getElementById('prog-fill');
+  const progText = document.getElementById('prog-text');
+
   document.getElementById('progress-wrap').style.display = 'block';
-  document.getElementById('prog-fill').style.width = '10%';
-  document.getElementById('prog-text').textContent = '10%';
+  progFill.classList.add('uploading');
+  progText.innerHTML = `⚡ Uploading ${formatBytes(selectedFile.size)}... Please wait, do not close or refresh this tab.`;
   document.getElementById('upload-btn').disabled = true;
   hideUploadMsg();
 
   try {
     // 1. Upload the file directly to Vercel Blob from the browser
-    showUploadMsg('📤 Uploading file directly to Vercel Blob storage (Supports files up to 500MB)...', 'info');
+    showUploadMsg('📤 Uploading file directly to Vercel Blob storage...', 'info');
     
     const { upload } = await import("https://esm.sh/@vercel/blob@0.23.4/client");
     
@@ -421,9 +436,11 @@ async function doUpload() {
       access: 'public',
       handleUploadUrl: '/api/blob-upload',
       onUploadProgress: (progressEvent) => {
-        const pct = Math.round(progressEvent.percentage);
-        document.getElementById('prog-fill').style.width = pct + '%';
-        document.getElementById('prog-text').textContent = pct + '%';
+        if (progressEvent.percentage > 10) {
+          progFill.classList.remove('uploading');
+          progFill.style.width = progressEvent.percentage + '%';
+          progText.textContent = Math.round(progressEvent.percentage) + '%';
+        }
       }
     });
 
@@ -452,6 +469,7 @@ async function doUpload() {
     currentData = updatedData;
 
     // 3. Complete UI update
+    progFill.classList.remove('uploading');
     document.getElementById('progress-wrap').style.display = 'none';
     document.getElementById('upload-btn').disabled = false;
     showUploadMsg(`✅ Published successfully! Vercel will redeploy changes in 1 minute.<br>Download URL: <a href="${downloadUrl}" target="_blank" style="color:var(--cyan);text-decoration:underline;">${downloadUrl}</a>`, 'success');
@@ -468,6 +486,7 @@ async function doUpload() {
     document.getElementById('upload-btn').disabled = true;
 
   } catch (err) {
+    progFill.classList.remove('uploading');
     document.getElementById('progress-wrap').style.display = 'none';
     document.getElementById('upload-btn').disabled = false;
     showUploadMsg(`❌ Failed: ${err.message}`, 'error');
