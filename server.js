@@ -94,8 +94,7 @@ app.post('/api/blob-upload', async (req, res) => {
             'application/zip',
             'application/x-msi'
           ],
-          tokenPayload: JSON.stringify({}),
-          validUntil: Date.now() + 30 * 60 * 1000 // Token valid for 30 minutes
+          tokenPayload: JSON.stringify({})
         };
       },
       onUploadCompleted: async ({ blob }) => {
